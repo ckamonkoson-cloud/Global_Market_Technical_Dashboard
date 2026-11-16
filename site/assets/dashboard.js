@@ -11,6 +11,7 @@
   document.getElementById("asof").innerHTML =
     `ข้อมูล ณ <b>${thDate(S.dataDate)}</b> · อัปเดตเมื่อ ${new Date(S.generated).toLocaleString("th-TH-u-ca-gregory", { dateStyle: "medium", timeStyle: "short" })}`;
   renderTicker(S);
+  if (window.renderWorldMap) renderWorldMap(S);
   document.getElementById("foot").textContent =
     `ที่มา: TradingView (ผ่าน tvdatafeed) · Benchmark RRG: ${S.benchmark.name} ข้อมูลถึง ${thDate(S.benchmark.lastDate)} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 
@@ -18,7 +19,23 @@
   renderRotation(S, byId);
   renderRRG(S, byId);
   renderTable(S);
+  openGlossaryFromHash();  // re-scroll once the content above has its final height
 })();
+
+// ------------------------------------------------------------ Glossary (collapsed by default)
+// Links to #glossary (Strategy chips, chart page) open it before scrolling there.
+function openGlossaryFromHash() {
+  if (location.hash !== "#glossary") return;
+  const g = document.getElementById("glossary");
+  g.open = true;
+  g.scrollIntoView({ block: "start" });
+}
+addEventListener("hashchange", openGlossaryFromHash);
+addEventListener("DOMContentLoaded", openGlossaryFromHash);
+document.addEventListener("click", ev => {
+  const a = ev.target.closest('a[href="#glossary"]');
+  if (a && location.hash === "#glossary") { ev.preventDefault(); openGlossaryFromHash(); }
+});
 
 // ------------------------------------------------------------ Ticker ribbon
 // Current level + change vs previous close. US10Y shows change in basis points.

@@ -128,6 +128,41 @@ a.ticker-item:hover { background: rgba(255,255,255,.06); text-decoration: none; 
 .card .sub { color: var(--text-3); font-size: 12.5px; margin: 0 0 12px; }
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* ---------- daily change world map ---------- */
+.worldmap { min-width: 760px; }
+.worldmap svg { display: block; width: 100%; height: auto; }
+.worldmap .land { fill: var(--surface-2); stroke: var(--border); stroke-width: .6; }
+.worldmap .home { fill: var(--grid); stroke: var(--text-3); stroke-opacity: .35; }
+.worldmap .leader { stroke: var(--text-3); stroke-width: 1; fill: none; }
+.worldmap .anchor { fill: var(--text-3); }
+.worldmap .bub { cursor: pointer; }
+.worldmap .bub circle { stroke: var(--surface); stroke-width: 2; fill-opacity: .82; }
+.worldmap .bub:hover circle { fill-opacity: 1; }
+.worldmap .bub.up circle { fill: var(--up); }
+.worldmap .bub.down circle { fill: var(--down); }
+.worldmap .bub.flat circle { fill: var(--neutral); }
+.worldmap .bub text {
+  font-size: 11px; font-weight: 600; fill: var(--text); text-anchor: middle;
+  paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none;
+}
+.worldmap .bub text.v { font-weight: 500; font-variant-numeric: tabular-nums; }
+.map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.map-legend svg { vertical-align: middle; }
+.map-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.xasset { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.xasset a {
+  display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface-2); color: var(--text); text-decoration: none;
+}
+.xasset a:hover { border-color: var(--accent); text-decoration: none; }
+.xasset .n { font-size: 12px; color: var(--text-2); }
+.xasset .l { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.xasset .c { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.xasset .c.up { color: var(--up); }
+.xasset .c.down { color: var(--down); }
+.xasset .c.flat { color: var(--text-3); }
+@media (max-width: 640px) { .xasset { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 /* ---------- performance ---------- */
 .perf-grid { display: grid; grid-template-columns: repeat(5, minmax(200px, 1fr)); gap: 20px; }
 .perf-panel h3 { font-size: 13px; margin: 0 0 8px; text-align: center; color: var(--text-2); }
@@ -203,6 +238,21 @@ table.sum tr:hover td:not(.g) { background: color-mix(in srgb, var(--surface-2) 
 .q-Improving { color: var(--accent); }
 
 /* ---------- glossary ---------- */
+details.collapsible > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  cursor: pointer; list-style: none; user-select: none;
+}
+details.collapsible > summary::-webkit-details-marker { display: none; }
+details.collapsible > summary h2 { margin: 0; }
+details.collapsible > summary h2::before {
+  content: "▸"; display: inline-block; width: 1em; color: var(--text-3); transition: transform .15s;
+}
+details.collapsible[open] > summary h2::before { transform: rotate(90deg); }
+details.collapsible[open] > summary { margin-bottom: 8px; }
+.toggle-hint { font-size: 12.5px; color: var(--accent); white-space: nowrap; }
+.toggle-hint::after { content: "แสดงคำอธิบาย"; }
+details.collapsible[open] .toggle-hint::after { content: "ซ่อน"; }
+details.collapsible > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 table.gloss { width: 100%; border-collapse: collapse; min-width: 720px; }
 table.gloss th, table.gloss td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; font-size: 13px; }
 table.gloss th { font-size: 12px; color: var(--text-2); font-weight: 600; background: var(--surface-2); }

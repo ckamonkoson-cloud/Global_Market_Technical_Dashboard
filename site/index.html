@@ -27,6 +27,14 @@
 <div class="wrap">
 
   <section class="card">
+    <h2>Daily Change Map</h2>
+    <p class="sub">การเปลี่ยนแปลงของดัชนีหุ้นเทียบราคาปิดวันก่อนหน้า · ขนาด bubble ตามขนาดการเปลี่ยนแปลง · คลิก bubble เพื่อเปิดกราฟ</p>
+    <div class="map-legend" id="map-legend"></div>
+    <div class="scroll-x"><div id="worldmap" class="worldmap"></div></div>
+    <div class="xasset" id="xasset"></div>
+  </section>
+
+  <section class="card">
     <h2>Performance</h2>
     <p class="sub">ผลตอบแทนในสกุลเงินท้องถิ่น (ไม่รวม US 10Y Yield) · แต่ละช่วงเวลาใช้สเกลของตัวเอง</p>
     <div class="perf-grid" id="perf"></div>
@@ -59,8 +67,8 @@
     </div>
   </section>
 
-  <section class="card" id="glossary">
-    <h2>คำอธิบาย Strategy (Glossary)</h2>
+  <details class="card collapsible" id="glossary">
+    <summary><h2>คำอธิบาย Strategy (Glossary)</h2><span class="toggle-hint"></span></summary>
     <p class="sub">ระบบตรวจเงื่อนไขจากบนลงล่าง และใช้ข้อแรกที่ตรง · ระยะห่างจาก High = ราคาปิดล่าสุดเทียบกับจุดสูงสุดในรอบ 52 สัปดาห์ (252 วันทำการ) · คำนวณจากราคาปิดรายวันล่าสุด</p>
     <div class="scroll-x">
       <table class="gloss">
@@ -130,11 +138,14 @@
       </div>
     </div>
     <p class="muted" style="margin:12px 0 0;font-size:12px">Strategy เป็นการคัดกรองเชิงปริมาณตามกฎด้านบนเท่านั้น ควรดูกราฟและแนวรับแนวต้านประกอบเสมอ · ไม่ใช่คำแนะนำการลงทุน</p>
-  </section>
+  </details>
 
   <footer class="foot" id="foot">ที่มา: TradingView</footer>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script src="assets/common.js"></script>
+<script src="assets/worldmap.js"></script>
 <script src="assets/dashboard.js"></script>
 </body>
 </html>
