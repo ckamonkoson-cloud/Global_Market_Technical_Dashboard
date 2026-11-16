@@ -1,0 +1,68 @@
+name: Update dashboard
+
+on:
+  schedule:
+    - cron: "30 22 * * 0-5"   # 05:30 Bangkok, Mon–Sat (after US close; Sat picks up Friday's US session)
+    - cron: "0 11 * * 1-5"    # 18:00 Bangkok, Mon–Fri (after Asia close)
+  workflow_dispatch:           # "Run workflow" button
+  push:
+    branches: [main]
+    paths: ["site/**", "scripts/**", ".github/workflows/**"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-dashboard
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch data and build JSON
+        # tvdatafeed converts bar timestamps with local time; Bangkok time gives the correct trading date
+        # for every series (FX/gold sessions open the previous evening in UTC).
+        env:
+          TZ: Asia/Bangkok
+        run: python scripts/build_data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "Update market data $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
