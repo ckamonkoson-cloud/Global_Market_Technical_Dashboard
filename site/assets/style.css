@@ -79,14 +79,46 @@ body {
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-.wrap { max-width: 1320px; margin: 0 auto; padding: 20px 16px 48px; }
-header.top {
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: 8px 16px; margin-bottom: 16px;
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 16px 48px; }
+/* ---------- masthead + ticker ribbon (fixed colors, same in light/dark) ---------- */
+.masthead { background: linear-gradient(135deg, #0f2740 0%, #1f3b57 55%, #24496b 100%); color: #f4f2ec; }
+.mast-inner {
+  max-width: 1320px; margin: 0 auto; padding: 26px 16px 20px;
+  display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; justify-content: space-between;
 }
-header.top h1 { font-size: 22px; margin: 0; font-weight: 700; letter-spacing: -.01em; }
-.asof { color: var(--text-2); font-size: 13px; }
-.asof b { color: var(--text); }
+.brand { display: flex; flex-direction: column; gap: 6px; }
+.brand .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: .72; font-weight: 600; }
+.brand h1 { margin: 0; font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; letter-spacing: -.01em; line-height: 1.15; }
+.mast-meta { text-align: right; font-size: 13px; line-height: 1.6; opacity: .9; }
+.mast-meta b { color: #fff; }
+.live-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e0a83c;
+  margin-right: 7px; position: relative; top: -1px; box-shadow: 0 0 0 0 rgba(224,168,60,.6);
+  animation: pulse 2.4s ease-out infinite;
+}
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(224,168,60,.55); } 70%,100% { box-shadow: 0 0 0 7px rgba(224,168,60,0); } }
+
+.ticker-shell { background: #0b1826; border-top: 1px solid rgba(255,255,255,.08); border-bottom: 1px solid rgba(0,0,0,.3); overflow: hidden; margin-bottom: 20px; }
+.ticker-track { display: flex; width: max-content; animation: ticker-scroll 70s linear infinite; }
+.ticker-shell:hover .ticker-track { animation-play-state: paused; }
+.ticker-track .dup { display: contents; }
+@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ticker-item {
+  display: flex; align-items: baseline; gap: 8px; padding: 9px 20px; font-size: 13px; white-space: nowrap;
+  color: #e7e4d8; border-right: 1px solid rgba(255,255,255,.08); text-decoration: none;
+}
+a.ticker-item:hover { background: rgba(255,255,255,.06); text-decoration: none; }
+.ticker-item b { font-weight: 600; color: #fff; }
+.ticker-item .lvl, .ticker-item .chg { font-variant-numeric: tabular-nums; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12.5px; }
+.ticker-item .lvl { color: #c9c6b9; }
+.ticker-up { color: #5fd15f; }
+.ticker-down { color: #ff8f8f; }
+.ticker-flat { color: #b4b2a8; }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+  .ticker-shell { overflow-x: auto; }
+  .ticker-track .dup { display: none; }
+}
 
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
@@ -246,8 +278,9 @@ footer.foot { color: var(--text-3); font-size: 12px; margin-top: 8px; }
 }
 @media (max-width: 640px) {
   .perf-grid { grid-template-columns: 1fr; }
-  .wrap { padding: 14px 16px 40px; }
-  header.top h1 { font-size: 19px; }
+  .wrap { padding: 0 16px 40px; }
+  .mast-inner { padding: 18px 16px 14px; }
+  .mast-meta { text-align: left; font-size: 12px; }
   .ranges button { padding: 6px 10px; }
 }
 

@@ -10,6 +10,7 @@
 
   document.getElementById("asof").innerHTML =
     `ข้อมูล ณ <b>${thDate(S.dataDate)}</b> · อัปเดตเมื่อ ${new Date(S.generated).toLocaleString("th-TH-u-ca-gregory", { dateStyle: "medium", timeStyle: "short" })}`;
+  renderTicker(S);
   document.getElementById("foot").textContent =
     `ที่มา: TradingView (ผ่าน tvdatafeed) · Benchmark RRG: ${S.benchmark.name} ข้อมูลถึง ${thDate(S.benchmark.lastDate)} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 
@@ -18,6 +19,30 @@
   renderRRG(S, byId);
   renderTable(S);
 })();
+
+// ------------------------------------------------------------ Ticker ribbon
+// Current level + change vs previous close. US10Y shows change in basis points.
+function renderTicker(S) {
+  const item = a => {
+    const isYield = a.id === "US10Y";
+    const prev = a.prev != null ? a.prev : (a.chg1d != null ? a.last / (1 + a.chg1d) : null);
+    let chgTxt = "–", dir = "flat";
+    if (a.chg1d != null && prev != null) {
+      dir = a.last > prev ? "up" : a.last < prev ? "down" : "flat";
+      const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "■";
+      chgTxt = isYield
+        ? `${arrow} ${(a.last - prev) * 100 >= 0 ? "+" : ""}${((a.last - prev) * 100).toFixed(1)} bp`
+        : `${arrow} ${fmtPct(a.chg1d, 2)}`;
+    }
+    const lvl = isYield ? a.last.toFixed(3) + "%" : fmtNum(a.last, 2);
+    return `<a class="ticker-item" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">` +
+      `<b>${esc(a.name)}</b><span class="lvl">${lvl}</span><span class="chg ticker-${dir}">${chgTxt}</span></a>`;
+  };
+  const html = S.assets.map(item).join("");
+  // Two copies so the -50% scroll loops seamlessly; the copy is hidden from screen readers.
+  document.getElementById("ticker").innerHTML =
+    html + `<div class="dup" aria-hidden="true">${html.replace(/<a /g, '<a tabindex="-1" ')}</div>`;
+}
 
 // ------------------------------------------------------------ Performance
 function renderPerformance(S, byId) {

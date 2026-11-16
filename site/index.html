@@ -9,11 +9,22 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<header class="masthead">
+  <div class="mast-inner">
+    <div class="brand">
+      <span class="eyebrow">Global Markets · Technical Desk</span>
+      <h1>Global Market Technical Dashboard</h1>
+    </div>
+    <div class="mast-meta">
+      <div><span class="live-dot"></span><span id="asof">กำลังโหลดข้อมูล…</span></div>
+      <div>อัปเดตอัตโนมัติ 05:30 และ 18:00 น. (เวลาไทย)</div>
+    </div>
+  </div>
+</header>
+<div class="ticker-shell" aria-label="ระดับดัชนีล่าสุดและการเปลี่ยนแปลงรายวัน">
+  <div class="ticker-track" id="ticker"></div>
+</div>
 <div class="wrap">
-  <header class="top">
-    <h1>Global Market Technical Dashboard</h1>
-    <div class="asof" id="asof">กำลังโหลดข้อมูล…</div>
-  </header>
 
   <section class="card">
     <h2>Performance</h2>
