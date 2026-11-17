@@ -206,6 +206,43 @@ a.ticker-item:hover { background: rgba(255,255,255,.06); text-decoration: none; 
 .strat-counts .chip { font-size: 11px; }
 .strat-counts b { font-size: 12px; color: var(--text); }
 
+/* ---------- Risk-On / Risk-Off gauge ---------- */
+.risk-card { margin-bottom: 16px; }
+.risk-grid { display: grid; grid-template-columns: 260px minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.risk-dial { text-align: center; }
+.risk-dial svg { display: block; width: 100%; max-width: 260px; margin: 0 auto; }
+.rd-tick, .rh-tick { font-size: 10px; fill: var(--text-3); }
+.rd-score { font-size: 40px; font-weight: 700; line-height: 1; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.rd-score small { font-size: 14px; color: var(--text-3); font-weight: 600; margin-left: 2px; }
+.rd-label { font-size: 18px; font-weight: 700; margin-top: 6px; }
+.rd-chg { font-size: 12.5px; margin-top: 2px; }
+.risk-comps { display: flex; flex-direction: column; gap: 9px; }
+.rc-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.rc-name { font-weight: 600; }
+.rc-raw { font-variant-numeric: tabular-nums; color: var(--text-2); }
+.rc-bar { position: relative; height: 8px; background: var(--surface-2); border-radius: 4px; margin: 4px 0 3px; }
+.rc-bar .mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--text-3); }
+.rc-bar b { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.rc-bar b.on { background: var(--up); }
+.rc-bar b.off { background: var(--down); }
+.rc-desc { font-size: 11.5px; color: var(--text-3); }
+.rc-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 600; }
+.risk-hist .rh-title { font-size: 12px; font-weight: 600; color: var(--text-3); margin-bottom: 4px; }
+.risk-hist svg { display: block; width: 100%; height: auto; }
+.risk-curve { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.risk-method { margin-top: 12px; font-size: 12.5px; color: var(--text-2); }
+.risk-method summary { cursor: pointer; color: var(--accent); font-weight: 600; width: max-content; }
+.risk-method ol { margin: 8px 0 4px; padding-left: 20px; }
+.risk-method li { margin: 3px 0; }
+.risk-method p { margin: 4px 0 0; }
+@media (max-width: 1100px) {
+  .risk-grid { grid-template-columns: 240px minmax(0, 1fr); }
+  .risk-hist { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .risk-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- overview: map + side column ---------- */
 .overview-grid { display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(280px, 1fr); gap: 16px; align-items: stretch; margin-bottom: 16px; }
 .overview-grid .card { margin-bottom: 0; }

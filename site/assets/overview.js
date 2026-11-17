@@ -180,3 +180,96 @@ function syncNav() {
   addEventListener("resize", pick);
   pick();
 })();
+
+// ------------------------------------------------------------ Risk-On / Risk-Off gauge
+const RISK_BANDS = [
+  { lo: 0, hi: 30, c: "var(--down)", label: "Risk-Off" },
+  { lo: 30, hi: 45, c: "color-mix(in srgb, var(--down) 45%, var(--neutral))", label: "เอียง Risk-Off" },
+  { lo: 45, hi: 55, c: "var(--neutral)", label: "Neutral" },
+  { lo: 55, hi: 70, c: "color-mix(in srgb, var(--up) 45%, var(--neutral))", label: "เอียง Risk-On" },
+  { lo: 70, hi: 100, c: "var(--up)", label: "Risk-On" },
+];
+const riskBand = s => RISK_BANDS.find(b => s < b.hi) || RISK_BANDS[RISK_BANDS.length - 1];
+
+function riskRaw(c) {
+  if (c.raw == null) return "–";
+  if (c.key === "breadth") return c.raw.toFixed(1) + "%";
+  if (c.key === "vix") return c.raw.toFixed(1);
+  return (c.raw > 0 ? "+" : "") + c.raw.toFixed(2) + "%";
+}
+
+function renderRisk(S) {
+  const R = S.risk;
+  const card = document.getElementById("risk");
+  if (!R) { card.hidden = true; return; }   // older summary.json without the gauge
+  card.hidden = false;
+  document.getElementById("risk-sub").textContent =
+    `รวม 6 สัญญาณข้ามสินทรัพย์ · 50 = ระดับปกติของรอบ 1 ปี · ข้อมูลตลาดสหรัฐฯ ถึง ${thDate(R.date)}`;
+
+  // --- dial: half circle 0 (left) → 100 (right)
+  const cx = 130, cy = 120, ro = 100, ri = 70;
+  const pt = (v, rad) => {
+    const a = Math.PI * (1 - v / 100);
+    return [cx + rad * Math.cos(a), cy - rad * Math.sin(a)];
+  };
+  const arc = (lo, hi) => {
+    const [x1, y1] = pt(lo, ro), [x2, y2] = pt(hi, ro), [x3, y3] = pt(hi, ri), [x4, y4] = pt(lo, ri);
+    return `M${x1},${y1} A${ro},${ro} 0 0 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 0 0 ${x4},${y4} Z`;
+  };
+  const band = riskBand(R.score);
+  const [nx, ny] = pt(R.score, ro + 6);
+  const chg = R.chg5d == null ? "" :
+    `<div class="rd-chg ${cls(R.chg5d)}">${R.chg5d > 0 ? "▲" : R.chg5d < 0 ? "▼" : "■"} ${Math.abs(R.chg5d).toFixed(1)} จุด จากสัปดาห์ก่อน</div>`;
+  document.getElementById("risk-dial").innerHTML =
+    `<svg viewBox="0 0 260 140" role="img" aria-label="คะแนน ${R.score} จาก 100: ${R.label}">` +
+    RISK_BANDS.map(b => `<path d="${arc(b.lo + 0.6, b.hi - 0.6)}" fill="${b.c}" opacity="${b === band ? 1 : 0.28}"/>`).join("") +
+    `<line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="6" fill="var(--text)"/>` +
+    `<text x="${cx - ro}" y="${cy + 16}" class="rd-tick">0</text><text x="${cx + ro}" y="${cy + 16}" class="rd-tick" text-anchor="end">100</text>` +
+    `</svg><div class="rd-score">${R.score.toFixed(0)}<small>/100</small></div>` +
+    `<div class="rd-label" style="color:${band.c}">${esc(R.label)}</div>${chg}`;
+
+  // --- components: bar centred on 50, filled toward the side the signal points to
+  document.getElementById("risk-comps").innerHTML = R.components.map(c => {
+    const p = c.pct;
+    const side = p == null ? "" : p >= 50 ? "on" : "off";
+    const left = p == null ? 50 : Math.min(p, 50), width = p == null ? 0 : Math.abs(p - 50);
+    return `<div class="rc" title="${esc(c.desc)}">
+      <div class="rc-top"><span class="rc-name">${esc(c.name)}</span><span class="rc-raw">${riskRaw(c)}</span></div>
+      <div class="rc-bar"><i class="mid"></i><b class="${side}" style="left:${left}%;width:${width}%"></b></div>
+      <div class="rc-desc">${esc(c.desc)} · <span class="${side === "on" ? "pos" : side === "off" ? "neg" : "muted"}">${p == null ? "–" : (side === "on" ? "Risk-On " : "Risk-Off ") + p.toFixed(0)}</span></div>
+    </div>`;
+  }).join("") + `<div class="rc-axis"><span>◀ Risk-Off</span><span>Risk-On ▶</span></div>`;
+
+  // --- history line with regime bands
+  const H = R.history, W = 360, Ht = 150, m = { l: 26, r: 8, t: 6, b: 18 };
+  const sx = i => m.l + i / Math.max(1, H.length - 1) * (W - m.l - m.r);
+  const sy = v => m.t + (100 - v) / 100 * (Ht - m.t - m.b);
+  let g = RISK_BANDS.map(b => `<rect x="${m.l}" y="${sy(b.hi)}" width="${W - m.l - m.r}" height="${sy(b.lo) - sy(b.hi)}" fill="${b.c}" opacity=".10"/>`).join("");
+  [0, 30, 50, 70, 100].forEach(v => {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--grid)"/>` +
+      `<text x="${m.l - 4}" y="${sy(v) + 3.5}" class="rh-tick" text-anchor="end">${v}</text>`;
+  });
+  const months = [];
+  H.forEach((h, i) => { if (i && h.d.slice(5, 7) !== H[i - 1].d.slice(5, 7) && +h.d.slice(5, 7) % 3 === 1) months.push(i); });
+  months.forEach(i => { g += `<text x="${sx(i)}" y="${Ht - 4}" class="rh-tick" text-anchor="middle">${new Date(H[i].d).toLocaleDateString("th-TH-u-ca-gregory", { month: "short", year: "2-digit" })}</text>`; });
+  g += `<polyline points="${H.map((h, i) => `${sx(i).toFixed(1)},${sy(h.s).toFixed(1)}`).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  g += `<circle cx="${sx(H.length - 1)}" cy="${sy(R.score)}" r="4" fill="${band.c}" stroke="var(--surface)" stroke-width="2"/>`;
+  g += `<line class="rh-cross" x1="0" x2="0" y1="${m.t}" y2="${Ht - m.b}" stroke="var(--text-3)" stroke-dasharray="3 3" visibility="hidden"/>`;
+  const host = document.getElementById("risk-hist");
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="คะแนน Risk gauge ย้อนหลัง 1 ปี">${g}</svg>`;
+  const svg = host.querySelector("svg"), cross = host.querySelector(".rh-cross");
+  svg.addEventListener("mousemove", ev => {
+    const b = svg.getBoundingClientRect();
+    const x = (ev.clientX - b.left) / b.width * W;
+    const i = Math.max(0, Math.min(H.length - 1, Math.round((x - m.l) / (W - m.l - m.r) * (H.length - 1))));
+    cross.setAttribute("x1", sx(i)); cross.setAttribute("x2", sx(i)); cross.setAttribute("visibility", "visible");
+    Tip.show(`<b>${thDate(H[i].d)}</b>คะแนน ${H[i].s.toFixed(1)} · ${riskBand(H[i].s).label}`, ev);
+  });
+  svg.addEventListener("mouseleave", () => { cross.setAttribute("visibility", "hidden"); Tip.hide(); });
+
+  const cv = R.curve;
+  document.getElementById("risk-curve").innerHTML = cv ? `<span>Yield curve 2s10s <b>${cv.bp > 0 ? "+" : ""}${cv.bp.toFixed(0)} bp</b></span>` +
+    `<span>${cv.chg20d > 0 ? "▲ ชันขึ้น" : cv.chg20d < 0 ? "▼ แบนลง" : "■ ทรงตัว"} ${Math.abs(cv.chg20d).toFixed(0)} bp ใน 20 วัน</span>` +
+    `<span class="muted">${cv.bp < 0 ? "Inverted" : "ปกติ (ไม่ inverted)"} · ไม่นับในคะแนน</span>` : "";
+}

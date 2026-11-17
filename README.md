@@ -1,6 +1,6 @@
 # Global Market Technical Dashboard
 
-Static dashboard (GitHub Pages) of 19 global indices / assets, updated by GitHub Actions.
+Static dashboard (GitHub Pages) of 22 global indices / assets (plus a Risk-On/Risk-Off gauge), updated by GitHub Actions.
 
 - `scripts/config.py` — asset list, TradingView symbols, parameters
 - `scripts/build_data.py` — fetches 1000 daily bars per asset via tvdatafeed, computes EMA50/200, RSI(14),

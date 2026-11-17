@@ -50,6 +50,7 @@ def normalize(df):
     out = df[["open", "high", "low", "close"]].astype(float).copy()
     out.index = pd.to_datetime(out.index).normalize()
     out = out[~out.index.duplicated(keep="last")].sort_index()
+    out = out[out.index.dayofweek < 5]  # futures/FX Sunday-session bars must not become weekend dates
     return out.dropna()
 
 
@@ -171,6 +172,109 @@ def r(v, nd=4):
     return round(float(v), nd)
 
 
+# ---------------------------------------------------------------- risk-on / risk-off gauge
+RISK_COMPONENTS = [
+    # key, Thai label, how to read, sign (+1: higher raw value = risk-on, -1: inverted)
+    ("breadth", "Breadth หุ้นโลก", "% ของดัชนีหุ้น 15 ตัวที่ยืนเหนือ EMA50", +1),
+    ("eq_gold", "หุ้นโลก / ทองคำ", "ACWI ÷ ทองคำ เปลี่ยนแปลง 20 วัน", +1),
+    ("credit", "Credit (HYG / IEF)", "หุ้นกู้ high yield ÷ พันธบัตรรัฐบาล เปลี่ยนแปลง 20 วัน", +1),
+    ("cu_gold", "ทองแดง / ทองคำ", "ทองแดง ÷ ทองคำ เปลี่ยนแปลง 20 วัน", +1),
+    ("vix", "VIX", "ระดับ VIX (ยิ่งต่ำยิ่ง risk-on)", -1),
+    ("dollar", "ดอลลาร์ (DXY)", "DXY เปลี่ยนแปลง 20 วัน (ดอลลาร์แข็ง = risk-off)", -1),
+]
+
+
+def risk_label(score):
+    if score >= 70:
+        return "Risk-On"
+    if score >= 55:
+        return "เอียง Risk-On"
+    if score > 45:
+        return "Neutral"
+    if score > 30:
+        return "เอียง Risk-Off"
+    return "Risk-Off"
+
+
+def risk_gauge(frames, equity_ids, bm_id):
+    """Composite 0-100 risk-appetite score.
+
+    Every component is turned into a rolling percentile of its own last RISK_WINDOW days
+    (so 50 = "normal for the past year"), flipped where higher raw = risk-off, then averaged.
+    Uses only data up to each day (no lookahead). All series are put on the US trading
+    calendar of the benchmark (ACWI) and forward-filled at most 5 days, so ratios always
+    compare the same date.
+    """
+    need = [bm_id, "XAUUSD", "HYG", "IEF", "COPPER", "VIX", "DXY"]
+    if any(k not in frames for k in need):
+        log.warning("Risk gauge skipped: missing %s", [k for k in need if k not in frames])
+        return None
+    cal = frames[bm_id].index
+    px = pd.DataFrame({k: frames[k]["close"].reindex(cal.union(frames[k].index)).ffill(limit=5).reindex(cal)
+                       for k in need})
+
+    above = {}
+    for aid in equity_ids:
+        c = frames[aid]["close"]
+        flag = (c > ema(c, C.EMA_FAST)).astype(float)
+        above[aid] = flag.reindex(cal.union(flag.index)).ffill(limit=5).reindex(cal)
+    breadth = pd.DataFrame(above).mean(axis=1) * 100
+
+    n = C.RISK_ROC
+    raw = pd.DataFrame({
+        "breadth": breadth,
+        "eq_gold": (px[bm_id] / px["XAUUSD"]).pct_change(n) * 100,
+        "credit": (px["HYG"] / px["IEF"]).pct_change(n) * 100,
+        "cu_gold": (px["COPPER"] / px["XAUUSD"]).pct_change(n) * 100,
+        "vix": px["VIX"],
+        "dollar": px["DXY"].pct_change(n) * 100,
+    })
+    w = C.RISK_WINDOW
+    pctl = raw.rolling(w, min_periods=w // 2).rank(pct=True) * 100
+    for key, _, _, sign in RISK_COMPONENTS:
+        if sign < 0:
+            pctl[key] = 100 - pctl[key]
+    score = pctl.mean(axis=1, skipna=True).where(pctl.notna().sum(axis=1) >= 4)
+    score = score.dropna()
+    if score.empty:
+        return None
+
+    d = score.index[-1]
+    comps = []
+    for key, name, desc, sign in RISK_COMPONENTS:
+        v, p = raw.at[d, key], pctl.at[d, key]
+        comps.append({"key": key, "name": name, "desc": desc, "sign": sign,
+                      "raw": r(float(v), 2) if pd.notna(v) else None,
+                      "pct": r(float(p), 1) if pd.notna(p) else None})
+    hist = score.iloc[-C.RISK_HISTORY:]
+    s_now = float(score.iloc[-1])
+    prev_wk = float(score.iloc[-6]) if len(score) > 5 else None
+
+    out = {"date": d.strftime("%Y-%m-%d"), "score": r(s_now, 1), "label": risk_label(s_now),
+           "chg5d": r(s_now - prev_wk, 1) if prev_wk is not None else None,
+           "window": w, "roc": n, "components": comps,
+           "history": [{"d": i.strftime("%Y-%m-%d"), "s": r(float(v), 1)} for i, v in hist.items()]}
+
+    # 2s10s curve as context (not part of the score: a rising yield can be either regime)
+    if "US10Y" in frames and "US02Y" in frames:
+        y = pd.concat([frames["US10Y"]["close"], frames["US02Y"]["close"]], axis=1, join="inner").dropna()
+        if len(y) > n:
+            spread = (y.iloc[:, 0] - y.iloc[:, 1]) * 100
+            out["curve"] = {"date": spread.index[-1].strftime("%Y-%m-%d"), "bp": r(float(spread.iloc[-1]), 1),
+                            "chg20d": r(float(spread.iloc[-1] - spread.iloc[-1 - n]), 1)}
+    return out
+
+
+def write_bars_only(aid, name, source, df):
+    """Bars-only JSON so the 'use previous data' fallback works for helper series too."""
+    (ASSET_DIR / f"{aid}.json").write_text(json.dumps({
+        "id": aid, "name": name, "source": source,
+        "bars": {"t": [d.strftime("%Y-%m-%d") for d in df.index],
+                 "o": [r(v, 4) for v in df["open"]], "h": [r(v, 4) for v in df["high"]],
+                 "l": [r(v, 4) for v in df["low"]], "c": [r(v, 4) for v in df["close"]]},
+    }, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+
 # ---------------------------------------------------------------- main
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -181,7 +285,8 @@ def main():
     tv = TvDatafeed()
 
     frames, sources, fresh = {}, {}, 0
-    targets = [(a[0], a[3], a[4]) for a in C.ASSETS] + [(C.BENCHMARK[0], C.BENCHMARK[2], C.BENCHMARK[3])]
+    targets = ([(a[0], a[3], a[4]) for a in C.ASSETS] + [(C.BENCHMARK[0], C.BENCHMARK[2], C.BENCHMARK[3])]
+               + [(a[0], a[2], a[3]) for a in C.AUX])
     for aid, sym, ex in targets:
         df = fetch(tv, sym, ex)
         if df is not None:
@@ -229,11 +334,12 @@ def main():
                 rrg_out[aid] = pts
                 quadrant = quadrant_of(pts[-1]["x"], pts[-1]["y"])
 
-        strategy = strategy_of(kind, trend, quadrant, dist, last, l50)
+        strategy = None if aid in C.NO_STRATEGY else strategy_of(kind, trend, quadrant, dist, last, l50)
         chg1d = pct(last, float(close.iloc[-2])) if len(close) > 1 else None
 
         summary_assets.append({
             "id": aid, "name": name, "group": group, "kind": kind, "color": color,
+            "unit": "yield" if aid in C.YIELD_IDS else "level",
             "source": sources[aid], "lastDate": close.index[-1].strftime("%Y-%m-%d"),
             "last": r(last, 4), "prev": r(float(close.iloc[-2]), 4) if len(close) > 1 else None, "chg1d": r(chg1d), "ema50": r(l50, 4), "ema200": r(l200, 4),
             "rsi": r(float(rs.iloc[-1]), 2), "high52": r(hi52, 4), "distHigh": r(dist),
@@ -260,13 +366,13 @@ def main():
 
     # keep benchmark bars so the "use previous data" fallback works for it too
     if bm_id in frames:
-        b = frames[bm_id]
-        (ASSET_DIR / f"{bm_id}.json").write_text(json.dumps({
-            "id": bm_id, "name": C.BENCHMARK[1], "source": sources[bm_id],
-            "bars": {"t": [d.strftime("%Y-%m-%d") for d in b.index],
-                     "o": [r(v, 4) for v in b["open"]], "h": [r(v, 4) for v in b["high"]],
-                     "l": [r(v, 4) for v in b["low"]], "c": [r(v, 4) for v in b["close"]]},
-        }, separators=(",", ":")), encoding="utf-8")
+        write_bars_only(bm_id, C.BENCHMARK[1], sources[bm_id], frames[bm_id])
+    for aid, name, _, _ in C.AUX:
+        if aid in frames:
+            write_bars_only(aid, name, sources[aid], frames[aid])
+
+    equity_ids = [a[0] for a in C.ASSETS if a[5] == "equity" and a[0] in frames]
+    risk = risk_gauge(frames, equity_ids, bm_id)
 
     # rotation: align months across assets; latest column is MTD
     months = sorted(set().union(*[set(s.index) for s in rot.values()]))[-C.ROTATION_MONTHS:]
@@ -287,6 +393,7 @@ def main():
         "performance": perf,
         "rotation": rotation,
         "rrg": rrg_out,
+        "risk": risk,
     }
     (DATA / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1),
                                        encoding="utf-8")

@@ -16,6 +16,7 @@
     `ที่มา: TradingView (ผ่าน tvdatafeed) · Benchmark RRG: ${S.benchmark.name} ข้อมูลถึง ${thDate(S.benchmark.lastDate)} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 
   renderPulse(S);
+  renderRisk(S);
   renderMovers(S);
   renderTable(S);
   renderPerformance(S, byId);
@@ -42,23 +43,10 @@ document.addEventListener("click", ev => {
 });
 
 // ------------------------------------------------------------ Ticker ribbon
-// Current level + change vs previous close. US10Y shows change in basis points.
+// Current level + change vs previous close (yields: change in basis points).
 function renderTicker(S) {
-  const item = a => {
-    const isYield = a.id === "US10Y";
-    const prev = a.prev != null ? a.prev : (a.chg1d != null ? a.last / (1 + a.chg1d) : null);
-    let chgTxt = "–", dir = "flat";
-    if (a.chg1d != null && prev != null) {
-      dir = a.last > prev ? "up" : a.last < prev ? "down" : "flat";
-      const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "■";
-      chgTxt = isYield
-        ? `${arrow} ${(a.last - prev) * 100 >= 0 ? "+" : ""}${((a.last - prev) * 100).toFixed(1)} bp`
-        : `${arrow} ${fmtPct(a.chg1d, 2)}`;
-    }
-    const lvl = isYield ? a.last.toFixed(3) + "%" : fmtNum(a.last, 2);
-    return `<a class="ticker-item" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">` +
-      `<b>${esc(a.name)}</b><span class="lvl">${lvl}</span><span class="chg ticker-${dir}">${chgTxt}</span></a>`;
-  };
+  const item = a => `<a class="ticker-item" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">` +
+    `<b>${esc(a.name)}</b><span class="lvl">${levelText(a)}</span><span class="chg ticker-${dirOf(a)}">${chgText(a)}</span></a>`;
   const html = S.assets.map(item).join("");
   // Two copies so the -50% scroll loops seamlessly; the copy is hidden from screen readers.
   document.getElementById("ticker").innerHTML =
@@ -295,7 +283,7 @@ function renderTable(S) {
 
   const rowHTML = a => `<tr>
     <td><span class="dot" style="background:${a.color}"></span><a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
-    <td class="num">${a.id === "US10Y" ? a.last.toFixed(3) + "%" : fmtNum(a.last)}</td>
+    <td class="num">${levelText(a)}</td>
     <td class="num ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</td>
     <td class="num">${sparkSVG(a)}</td>
     <td class="num ${cls(a.distHigh)}">${fmtPct(a.distHigh, 1)}</td>

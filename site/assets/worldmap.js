@@ -14,19 +14,6 @@ const MAP_PLACES = {
 };
 const EUROPE = ["040", "056", "203", "208", "246", "250", "276", "300", "348", "372", "380", "528", "578", "616", "620", "724", "752", "756", "826"];
 
-function dirOf(a) { return a.chg1d == null ? "flat" : a.chg1d > 0 ? "up" : a.chg1d < 0 ? "down" : "flat"; }
-
-function chgText(a) {
-  const d = dirOf(a), arrow = d === "up" ? "▲" : d === "down" ? "▼" : "■";
-  if (a.chg1d == null) return "–";
-  if (a.id === "US10Y") {
-    const prev = a.prev != null ? a.prev : a.last / (1 + a.chg1d);
-    const bp = (a.last - prev) * 100;
-    return `${arrow} ${bp >= 0 ? "+" : ""}${bp.toFixed(1)} bp`;
-  }
-  return `${arrow} ${fmtPct(a.chg1d, 2)}`;
-}
-
 async function renderWorldMap(S) {
   const host = document.getElementById("worldmap");
   renderCrossAsset(S);
@@ -111,7 +98,6 @@ async function renderWorldMap(S) {
 function renderCrossAsset(S) {
   const others = S.assets.filter(a => a.kind !== "equity" && a.last != null);
   document.getElementById("xasset").innerHTML = others.map(a => {
-    const lvl = a.id === "US10Y" ? a.last.toFixed(3) + "%" : fmtNum(a.last, 2);
-    return `<a href="chart.html?s=${a.id}"><span class="n">${esc(a.name)}</span><span class="l">${lvl}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
+    return `<a href="chart.html?s=${a.id}"><span class="n">${esc(a.name)}</span><span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
   }).join("");
 }

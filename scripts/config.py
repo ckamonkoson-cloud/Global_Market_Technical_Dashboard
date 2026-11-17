@@ -23,10 +23,29 @@ ASSETS = [
     ("KOSPI",  "KOSPI",              "หุ้นเกาหลีใต้",     "KOSPI",  "KRX",    "equity", True,  "#d63384"),
     ("SET",    "SET Index",          "หุ้นไทย",         "SET",    "SET",    "equity", True,  "#6a1b9a"),
     ("US10Y",  "US 10-Year Yield",   "พันธบัตรสหรัฐฯ",   "US10Y",  "TVC",    "other",  False, "#546e7a"),
+    ("US02Y",  "US 2-Year Yield",    "พันธบัตรสหรัฐฯ",   "US02Y",  "TVC",    "other",  False, "#90a4ae"),
     ("XAUUSD", "Gold Spot",          "สินค้าโภคภัณฑ์",    "XAUUSD", "OANDA",  "other",  True,  "#b8860b"),
     ("BRENT",  "Brent Oil",          "พลังงาน",         "UKOIL",  "TVC",    "other",  True,  "#3e2723"),
     ("USDTHB", "USD/THB",            "อัตราแลกเปลี่ยน",   "USDTHB", "FX_IDC", "other",  True,  "#2e7d32"),
+    ("DXY",    "US Dollar Index",    "อัตราแลกเปลี่ยน",   "DXY",    "TVC",    "other",  True,  "#00695c"),
+    ("VIX",    "VIX",                "ความผันผวน",       "VIX",    "TVC",    "other",  False, "#c62828"),
 ]
+
+# How the front end formats levels/changes: yields show "%" levels and bp changes.
+YIELD_IDS = {"US10Y", "US02Y"}
+# A trend/Strategy flag on a fear index would read backwards (a VIX "BREAKOUT" is not a buy).
+NO_STRATEGY = {"VIX"}
+
+# Inputs used only by the Risk-On / Risk-Off gauge (not shown as rows).
+# id, name, symbol, exchange
+AUX = [
+    ("HYG",    "iShares High Yield Corporate Bond ETF", "HYG",  "AMEX"),
+    ("IEF",    "iShares 7-10 Year Treasury Bond ETF",   "IEF",  "NASDAQ"),
+    ("COPPER", "Copper Futures (continuous)",           "HG1!", "COMEX"),
+]
+RISK_WINDOW = 252      # rolling percentile window (trading days)
+RISK_ROC = 20          # rate-of-change lookback for ratio components (trading days)
+RISK_HISTORY = 252     # days of gauge history written to summary.json
 
 # Benchmark for RRG only (ETF tracking MSCI ACWI; the index itself is not on TradingView)
 BENCHMARK = ("ACWI", "MSCI ACWI (ETF)", "ACWI", "NASDAQ")

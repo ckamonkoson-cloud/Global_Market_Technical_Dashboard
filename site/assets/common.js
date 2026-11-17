@@ -28,7 +28,26 @@ const TREND_ICON = { UPTREND: "▲", DOWNTREND: "▼", SIDEWAYS: "►" };
 const STRAT_ICON = { "BREAKOUT": "🚀", "BUY DIP": "🟢", "WATCH": "⚠️", "CORRECTION": "📉", "AVOID": "❌" };
 
 function trendChip(t) { return `<span class="chip t-${t}">${TREND_ICON[t] || ""} ${t}</span>`; }
-function stratChip(s) { return `<span class="chip s-${s.replace(" ", "-")}">${STRAT_ICON[s] || ""} ${s}</span>`; }
+function stratChip(s) {
+  if (!s) return `<span class="muted">–</span>`;  // e.g. VIX has no Strategy
+  return `<span class="chip s-${s.replace(" ", "-")}">${STRAT_ICON[s] || ""} ${s}</span>`;
+}
+
+// Level / daily-change text shared by ticker, table and cross-asset list.
+// Yields (unit "yield") show a % level and a change in basis points.
+function isYield(a) { return a.unit ? a.unit === "yield" : a.id === "US10Y"; }
+function dirOf(a) { return a.chg1d == null ? "flat" : a.chg1d > 0 ? "up" : a.chg1d < 0 ? "down" : "flat"; }
+function levelText(a) { return a.last == null ? "–" : isYield(a) ? a.last.toFixed(3) + "%" : fmtNum(a.last, 2); }
+function chgText(a) {
+  if (a.chg1d == null) return "–";
+  const d = dirOf(a), arrow = d === "up" ? "▲" : d === "down" ? "▼" : "■";
+  if (isYield(a)) {
+    const prev = a.prev != null ? a.prev : a.last / (1 + a.chg1d);
+    const bp = (a.last - prev) * 100;
+    return `${arrow} ${bp >= 0 ? "+" : ""}${bp.toFixed(1)} bp`;
+  }
+  return `${arrow} ${fmtPct(a.chg1d, 2)}`;
+}
 function quadChip(q) { return q ? `<span class="chip q-${q}">${q}</span>` : `<span class="muted">–</span>`; }
 
 async function getJSON(url) {

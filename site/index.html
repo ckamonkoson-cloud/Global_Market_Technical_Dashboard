@@ -40,6 +40,35 @@
   <section id="overview" class="anchor">
     <div class="pulse" id="pulse"></div>
 
+    <section class="card risk-card" id="risk" hidden>
+      <div class="card-head">
+        <div>
+          <h2>Risk-On / Risk-Off Gauge</h2>
+          <p class="sub" id="risk-sub">รวม 6 สัญญาณข้ามสินทรัพย์ · 50 = ระดับปกติของรอบ 1 ปี</p>
+        </div>
+      </div>
+      <div class="risk-grid">
+        <div class="risk-dial" id="risk-dial"></div>
+        <div class="risk-comps" id="risk-comps"></div>
+        <div class="risk-hist">
+          <div class="rh-title">ย้อนหลัง 1 ปี</div>
+          <div id="risk-hist"></div>
+          <div class="risk-curve" id="risk-curve"></div>
+        </div>
+      </div>
+      <details class="risk-method">
+        <summary>วิธีคำนวณ</summary>
+        <ol>
+          <li>แต่ละสัญญาณถูกแปลงเป็น <b>percentile เทียบกับตัวเองในรอบ 252 วันทำการ</b> (0 = ต่ำสุดของปี, 100 = สูงสุดของปี) ใช้เฉพาะข้อมูลถึงวันนั้น ไม่มองไปข้างหน้า</li>
+          <li>สัญญาณที่ค่าสูงแปลว่ากลัว (VIX, ดอลลาร์แข็ง) จะกลับด้าน (100 − percentile)</li>
+          <li>คะแนน = ค่าเฉลี่ยของทุกสัญญาณ · ≥ 70 Risk-On · 55–70 เอียง Risk-On · 45–55 Neutral · 30–45 เอียง Risk-Off · ≤ 30 Risk-Off</li>
+          <li>ทุกสัญญาณเทียบบนปฏิทินวันทำการของตลาดสหรัฐฯ (ตาม ACWI) เพื่อให้อัตราส่วนเทียบวันเดียวกันเสมอ</li>
+          <li>Yield curve 2s10s แสดงประกอบเท่านั้น ไม่นับในคะแนน เพราะ yield ขึ้นได้ทั้งตอนตลาดกล้าเสี่ยงและตอนกังวลเงินเฟ้อ</li>
+        </ol>
+        <p class="muted">เป็นเครื่องมือดูภาวะตลาด ไม่ใช่สัญญาณซื้อขาย · HYG/IEF และทองแดง (HG1!) ใช้คำนวณเท่านั้น ไม่แสดงในตาราง</p>
+      </details>
+    </section>
+
     <div class="overview-grid">
       <section class="card map-card">
         <div class="card-head">
@@ -120,7 +149,7 @@
           <tr>
             <td class="num">1</td>
             <td><span class="chip s-AVOID">❌ AVOID</span></td>
-            <td><b>ดัชนีหุ้น:</b> อยู่ใน quadrant <span class="chip q-Lagging">Lagging</span> บน RRG<br><b>สินทรัพย์อื่น</b> (US10Y, ทอง, น้ำมัน, USD/THB): แนวโน้มเป็น DOWNTREND<br><span class="muted">มีสิทธิ์เหนือกฎข้ออื่นทั้งหมด</span></td>
+            <td><b>ดัชนีหุ้น:</b> อยู่ใน quadrant <span class="chip q-Lagging">Lagging</span> บน RRG<br><b>สินทรัพย์อื่น</b> (US10Y, US2Y, ทอง, น้ำมัน, USD/THB, DXY): แนวโน้มเป็น DOWNTREND<br><span class="muted">VIX ไม่มี Strategy เพราะเป็นดัชนีความกลัว ไม่ใช่สินทรัพย์ที่ใช้ตัดสินใจซื้อขายแบบเดียวกัน</span><br><span class="muted">มีสิทธิ์เหนือกฎข้ออื่นทั้งหมด</span></td>
             <td>ตลาดอ่อนกว่าภาพรวมโลกและโมเมนตัมยังแย่ลง ราคาที่ลงมาเยอะอาจไม่ใช่ "ของถูก" แต่เป็น falling knife · <b>ลดน้ำหนักหรือหลีกเลี่ยงไปก่อน</b></td>
           </tr>
           <tr>
