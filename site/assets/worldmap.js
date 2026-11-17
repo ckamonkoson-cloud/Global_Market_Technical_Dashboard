@@ -32,7 +32,7 @@ async function renderWorldMap(S) {
   renderCrossAsset(S);
   if (!window.d3 || !window.topojson) { host.innerHTML = `<p class="muted">โหลดแผนที่ไม่สำเร็จ</p>`; return; }
   let world;
-  try { world = await getJSON("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json"); }
+  try { world = await getJSON("assets/vendor/countries-110m.json"); }
   catch (e) { host.innerHTML = `<p class="muted">โหลดแผนที่ไม่สำเร็จ: ${esc(e.message)}</p>`; return; }
 
   const W = 1000, H = 400;
