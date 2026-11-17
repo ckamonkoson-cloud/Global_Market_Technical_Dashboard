@@ -15,11 +15,15 @@
   document.getElementById("foot").textContent =
     `ที่มา: TradingView (ผ่าน tvdatafeed) · Benchmark RRG: ${S.benchmark.name} ข้อมูลถึง ${thDate(S.benchmark.lastDate)} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 
+  renderPulse(S);
+  renderMovers(S);
+  renderTable(S);
   renderPerformance(S, byId);
   renderRotation(S, byId);
   renderRRG(S, byId);
-  renderTable(S);
-  openGlossaryFromHash();  // re-scroll once the content above has its final height
+  // re-scroll once the content above has its final height
+  openGlossaryFromHash();
+  goToTabFromHash();
 })();
 
 // ------------------------------------------------------------ Glossary (collapsed by default)
@@ -220,29 +224,124 @@ function renderRRG(S, byId) {
 }
 
 // ------------------------------------------------------------ Summary table
+// Grouped by market by default. Clicking a column header sorts a flat list
+// (desc → asc → back to grouped). Region chips filter rows.
+const REGIONS = [
+  { k: "all", label: "ทั้งหมด", test: () => true },
+  { k: "us", label: "สหรัฐฯ", test: a => a.group === "หุ้นสหรัฐฯ" },
+  { k: "eu", label: "ยุโรป", test: a => a.group === "หุ้นยุโรป" },
+  { k: "asia", label: "เอเชีย", test: a => a.kind === "equity" && !["หุ้นสหรัฐฯ", "หุ้นยุโรป"].includes(a.group) },
+  { k: "other", label: "สินทรัพย์อื่น", test: a => a.kind !== "equity" },
+];
+const ORDER = {
+  trend: { UPTREND: 3, SIDEWAYS: 2, DOWNTREND: 1 },
+  strategy: { BREAKOUT: 5, "BUY DIP": 4, WATCH: 3, CORRECTION: 2, AVOID: 1 },
+  quadrant: { Leading: 4, Improving: 3, Weakening: 2, Lagging: 1 },
+};
+const COLS = [
+  { k: "name", label: "Index / Asset", val: a => a.name, text: true },
+  { k: "last", label: "ราคาล่าสุด", num: true, val: a => a.last },
+  { k: "chg1d", label: "%1D", num: true, val: a => a.chg1d },
+  { k: "spark", label: "3 เดือน", num: true, val: a => sparkRet(a) },
+  { k: "distHigh", label: "จาก High 52W", num: true, val: a => a.distHigh },
+  { k: "rsi", label: "RSI", num: true, val: a => a.rsi },
+  { k: "trend", label: "แนวโน้ม", val: a => ORDER.trend[a.trend] },
+  { k: "strategy", label: "Strategy", val: a => ORDER.strategy[a.strategy] },
+  { k: "quadrant", label: "Quadrant", val: a => ORDER.quadrant[a.quadrant] },
+  { k: "lastDate", label: "ข้อมูล ณ", val: a => a.lastDate, text: true },
+];
+
+function sparkRet(a) {
+  const s = a.spark;
+  return s && s.length > 1 && s[0] ? s[s.length - 1] / s[0] - 1 : null;
+}
+
+function sparkSVG(a) {
+  const s = (a.spark || []).filter(v => v != null);
+  // Same footprint as a drawn sparkline so rows don't change height when data arrives.
+  if (s.length < 2) return `<span class="spark"><svg width="92" height="26" aria-hidden="true"></svg><span class="muted">–</span></span>`;
+  const W = 92, H = 26, lo = Math.min(...s), hi = Math.max(...s), span = hi - lo || 1;
+  const pts = s.map((v, i) => `${(i / (s.length - 1) * (W - 4) + 2).toFixed(1)},${(H - 3 - (v - lo) / span * (H - 6)).toFixed(1)}`);
+  const r = sparkRet(a), c = r > 0 ? "var(--up)" : r < 0 ? "var(--down)" : "var(--neutral)";
+  const [lx, ly] = pts[pts.length - 1].split(",");
+  return `<span class="spark" title="3 เดือน: ${fmtPct(r, 1)}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">` +
+    `<polyline points="${pts.join(" ")}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linejoin="round"/>` +
+    `<circle cx="${lx}" cy="${ly}" r="2.2" fill="${c}"/></svg><span class="${cls(r)}">${fmtPct(r, 1)}</span></span>`;
+}
+
+// Older summary.json files have no "spark": fall back to each asset's bar file.
+async function ensureSparks(S) {
+  const missing = S.assets.filter(a => !a.spark);
+  if (!missing.length) return false;
+  await Promise.all(missing.map(async a => {
+    try { const d = await getJSON(`data/assets/${encodeURIComponent(a.id)}.json`); a.spark = d.bars.c.slice(-63); }
+    catch (e) { a.spark = null; }
+  }));
+  return true;
+}
+
 function renderTable(S) {
-  const groups = [];
-  for (const a of S.assets) {
-    let g = groups.find(x => x.name === a.group);
-    if (!g) groups.push(g = { name: a.group, items: [] });
-    g.items.push(a);
-  }
-  let html = `<thead><tr><th>Index / Asset</th><th class="num">ราคาล่าสุด</th><th class="num">%1D</th>
-    <th class="num">จาก High 52W</th><th class="num">RSI</th><th>แนวโน้ม</th><th>Strategy</th><th>Quadrant</th><th>ข้อมูล ณ</th></tr></thead><tbody>`;
-  for (const g of groups) {
-    html += `<tr class="grp"><td class="g" colspan="9">${esc(g.name)}</td></tr>`;
-    for (const a of g.items) {
-      html += `<tr>
-        <td><span class="dot" style="background:${a.color}"></span><a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
-        <td class="num">${fmtNum(a.last)}</td>
-        <td class="num ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</td>
-        <td class="num ${cls(a.distHigh)}">${fmtPct(a.distHigh, 1)}</td>
-        <td class="num">${a.rsi?.toFixed(1) ?? "–"}</td>
-        <td>${trendChip(a.trend)}</td>
-        <td><a class="chip-link" href="#glossary" title="ดูคำอธิบาย Strategy">${stratChip(a.strategy)}</a></td>
-        <td>${quadChip(a.quadrant)}</td>
-        <td class="muted">${thDate(a.lastDate)}</td></tr>`;
+  const state = { region: "all", sort: null, dir: -1 };
+  const table = document.getElementById("sum");
+  const filter = document.getElementById("region-filter");
+
+  filter.innerHTML = REGIONS.map(r => `<button data-r="${r.k}" aria-pressed="${r.k === "all"}">${r.label}</button>`).join("");
+  filter.addEventListener("click", ev => {
+    const b = ev.target.closest("button"); if (!b) return;
+    state.region = b.dataset.r;
+    filter.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    draw();
+  });
+
+  const rowHTML = a => `<tr>
+    <td><span class="dot" style="background:${a.color}"></span><a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
+    <td class="num">${a.id === "US10Y" ? a.last.toFixed(3) + "%" : fmtNum(a.last)}</td>
+    <td class="num ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</td>
+    <td class="num">${sparkSVG(a)}</td>
+    <td class="num ${cls(a.distHigh)}">${fmtPct(a.distHigh, 1)}</td>
+    <td class="num">${a.rsi?.toFixed(1) ?? "–"}</td>
+    <td>${trendChip(a.trend)}</td>
+    <td><a class="chip-link" href="#glossary" title="ดูคำอธิบาย Strategy">${stratChip(a.strategy)}</a></td>
+    <td>${quadChip(a.quadrant)}</td>
+    <td class="muted">${thDate(a.lastDate)}</td></tr>`;
+
+  function draw() {
+    const test = REGIONS.find(r => r.k === state.region).test;
+    const rows = S.assets.filter(test);
+    let html = `<thead><tr>${COLS.map(c => {
+      const on = state.sort === c.k;
+      const aria = on ? (state.dir < 0 ? "descending" : "ascending") : "none";
+      return `<th class="${c.num ? "num" : ""}" aria-sort="${aria}"><button data-k="${c.k}">${c.label}<span class="si">${on ? (state.dir < 0 ? "▼" : "▲") : "↕"}</span></button></th>`;
+    }).join("")}</tr></thead><tbody>`;
+    if (state.sort) {
+      const col = COLS.find(c => c.k === state.sort);
+      const sorted = [...rows].sort((a, b) => {
+        const x = col.val(a), y = col.val(b);
+        if (x == null) return 1; if (y == null) return -1;
+        return (col.text ? String(x).localeCompare(String(y)) : x - y) * state.dir;
+      });
+      html += sorted.map(rowHTML).join("");
+    } else {
+      const groups = [];
+      for (const a of rows) {
+        let g = groups.find(x => x.name === a.group);
+        if (!g) groups.push(g = { name: a.group, items: [] });
+        g.items.push(a);
+      }
+      for (const g of groups) html += `<tr class="grp"><td class="g" colspan="${COLS.length}">${esc(g.name)}</td></tr>` + g.items.map(rowHTML).join("");
     }
+    table.innerHTML = html + "</tbody>";
   }
-  document.getElementById("sum").innerHTML = html + "</tbody>";
+
+  table.addEventListener("click", ev => {
+    const b = ev.target.closest("th button"); if (!b) return;
+    const k = b.dataset.k, text = COLS.find(c => c.k === k).text;
+    if (state.sort !== k) { state.sort = k; state.dir = text ? 1 : -1; }
+    else if (state.dir === (text ? 1 : -1)) state.dir = -state.dir;
+    else state.sort = null;   // third click: back to grouped view
+    draw();
+  });
+
+  draw();
+  ensureSparks(S).then(changed => { if (changed) draw(); });
 }

@@ -20,54 +20,97 @@
       <div>อัปเดตอัตโนมัติ 04:47 (ก่อนตลาดเอเชียเปิด) และ 18:13 น. (เวลาไทย)</div>
     </div>
   </div>
+  <div class="clocks" id="clocks" aria-label="เวลาท้องถิ่นและสถานะตลาด"></div>
 </header>
 <div class="ticker-shell" aria-label="ระดับดัชนีล่าสุดและการเปลี่ยนแปลงรายวัน">
   <div class="ticker-track" id="ticker"></div>
 </div>
+<nav class="secnav" id="secnav" aria-label="ไปยังส่วนต่างๆ">
+  <div class="secnav-inner">
+    <a href="#overview">ภาพรวม</a>
+    <a href="#summary">ตารางสรุป</a>
+    <a href="#performance" data-tab="performance">Performance</a>
+    <a href="#rotation" data-tab="rotation">Market Rotation</a>
+    <a href="#rrg" data-tab="rrg">RRG</a>
+    <a href="#glossary">Glossary</a>
+  </div>
+</nav>
 <div class="wrap">
 
-  <section class="card">
-    <h2>Daily Change Map</h2>
-    <p class="sub">การเปลี่ยนแปลงของดัชนีหุ้นเทียบราคาปิดวันก่อนหน้า · ขนาด bubble ตามขนาดการเปลี่ยนแปลง · คลิก bubble เพื่อเปิดกราฟ</p>
-    <div class="map-legend" id="map-legend"></div>
-    <div class="scroll-x"><div id="worldmap" class="worldmap"></div></div>
-    <div class="xasset" id="xasset"></div>
-  </section>
+  <section id="overview" class="anchor">
+    <div class="pulse" id="pulse"></div>
 
-  <section class="card">
-    <h2>Performance</h2>
-    <p class="sub">ผลตอบแทนในสกุลเงินท้องถิ่น (ไม่รวม US 10Y Yield) · แต่ละช่วงเวลาใช้สเกลของตัวเอง</p>
-    <div class="perf-grid" id="perf"></div>
-  </section>
+    <div class="overview-grid">
+      <section class="card map-card">
+        <div class="card-head">
+          <div>
+            <h2>Daily Change Map</h2>
+            <p class="sub">ดัชนีหุ้นเทียบราคาปิดวันก่อนหน้า · ขนาด bubble ตามขนาดการเปลี่ยนแปลง · คลิกเพื่อเปิดกราฟ</p>
+          </div>
+          <div class="map-legend" id="map-legend"></div>
+        </div>
+        <div class="scroll-x"><div id="worldmap" class="worldmap"></div></div>
+      </section>
 
-  <section class="card">
-    <h2>Market Rotation (Monthly)</h2>
-    <p class="sub">ผลตอบแทนรายเดือนย้อนหลัง 6 เดือน เรียงจากดีที่สุดลงไป · เดือนล่าสุดเป็น MTD · ชี้ที่ช่องเพื่อไล่ดูสินทรัพย์เดียวกันทุกเดือน</p>
-    <div class="scroll-x">
-      <div class="rot-side"><span>Best ▲</span><span></span></div>
-      <div class="rot" id="rot"></div>
-      <div class="rot-side"><span>Worst ▼</span><span></span></div>
+      <aside class="side-col">
+        <section class="card">
+          <h2>Top Movers</h2>
+          <p class="sub">ดัชนีหุ้นที่เปลี่ยนแปลงมากที่สุดวันนี้</p>
+          <div class="movers" id="movers"></div>
+        </section>
+        <section class="card">
+          <h2>Cross-Asset</h2>
+          <p class="sub">พันธบัตร · ทองคำ · น้ำมัน · ค่าเงิน</p>
+          <div class="xasset" id="xasset"></div>
+        </section>
+      </aside>
     </div>
   </section>
 
-  <section class="card">
-    <h2>Relative Rotation Graph</h2>
-    <p class="sub" id="rrg-sub">ดัชนีหุ้นเทียบ MSCI ACWI · รายสัปดาห์ · หาง 8 สัปดาห์</p>
-    <div class="rrg-layout">
-      <div id="rrg"></div>
-      <div class="rrg-legend" id="rrg-legend"></div>
+  <section class="card anchor" id="summary">
+    <div class="card-head">
+      <div>
+        <h2>ตารางสรุป</h2>
+        <p class="sub">คลิกชื่อเพื่อดู Technical Chart · คลิกหัวคอลัมน์เพื่อเรียงลำดับ · คลิก Strategy เพื่อดู <a href="#glossary">คำอธิบาย</a></p>
+      </div>
+      <div class="seg" id="region-filter" role="group" aria-label="กรองตามภูมิภาค"></div>
     </div>
-  </section>
-
-  <section class="card">
-    <h2>ตารางสรุป</h2>
-    <p class="sub">คลิกชื่อเพื่อดู Technical Chart · คลิก Strategy หรือดู <a href="#glossary">คำอธิบาย Strategy</a> ด้านล่าง ว่าแต่ละ flag มาจากเงื่อนไขอะไร</p>
     <div class="scroll-x">
       <table class="sum" id="sum"></table>
     </div>
   </section>
 
-  <details class="card collapsible" id="glossary">
+  <section class="card anchor" id="analysis">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="performance" id="tab-performance" aria-controls="pane-performance">Performance</button>
+      <button role="tab" data-tab="rotation" id="tab-rotation" aria-controls="pane-rotation">Market Rotation</button>
+      <button role="tab" data-tab="rrg" id="tab-rrg" aria-controls="pane-rrg">Relative Rotation Graph</button>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-performance" aria-labelledby="tab-performance">
+      <p class="sub">ผลตอบแทนในสกุลเงินท้องถิ่น (ไม่รวม US 10Y Yield) · แต่ละช่วงเวลาใช้สเกลของตัวเอง</p>
+      <div class="perf-grid" id="perf"></div>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-rotation" aria-labelledby="tab-rotation" hidden>
+      <p class="sub">ผลตอบแทนรายเดือนย้อนหลัง 6 เดือน เรียงจากดีที่สุดลงไป · เดือนล่าสุดเป็น MTD · ชี้ที่ช่องเพื่อไล่ดูสินทรัพย์เดียวกันทุกเดือน</p>
+      <div class="scroll-x">
+        <div class="rot-side"><span>Best ▲</span><span></span></div>
+        <div class="rot" id="rot"></div>
+        <div class="rot-side"><span>Worst ▼</span><span></span></div>
+      </div>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-rrg" aria-labelledby="tab-rrg" hidden>
+      <p class="sub" id="rrg-sub">ดัชนีหุ้นเทียบ MSCI ACWI · รายสัปดาห์ · หาง 8 สัปดาห์</p>
+      <div class="rrg-layout">
+        <div id="rrg"></div>
+        <div class="rrg-legend" id="rrg-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <details class="card collapsible anchor" id="glossary">
     <summary><h2>คำอธิบาย Strategy (Glossary)</h2><span class="toggle-hint"></span></summary>
     <p class="sub">ระบบตรวจเงื่อนไขจากบนลงล่าง และใช้ข้อแรกที่ตรง · ระยะห่างจาก High = ราคาปิดล่าสุดเทียบกับจุดสูงสุดในรอบ 52 สัปดาห์ (252 วันทำการ) · คำนวณจากราคาปิดรายวันล่าสุด</p>
     <div class="scroll-x">
@@ -146,6 +189,7 @@
 <script src="assets/vendor/topojson-client.min.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/worldmap.js"></script>
+<script src="assets/overview.js"></script>
 <script src="assets/dashboard.js"></script>
 </body>
 </html>

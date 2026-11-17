@@ -238,6 +238,8 @@ def main():
             "last": r(last, 4), "prev": r(float(close.iloc[-2]), 4) if len(close) > 1 else None, "chg1d": r(chg1d), "ema50": r(l50, 4), "ema200": r(l200, 4),
             "rsi": r(float(rs.iloc[-1]), 2), "high52": r(hi52, 4), "distHigh": r(dist),
             "trend": trend, "quadrant": quadrant, "strategy": strategy,
+            # ~3 months of closes for the summary-table sparkline
+            "spark": [r(float(v), 4) for v in close.iloc[-63:]],
         })
 
         if in_perf:

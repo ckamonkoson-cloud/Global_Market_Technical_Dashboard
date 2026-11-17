@@ -35,10 +35,10 @@ async function renderWorldMap(S) {
   try { world = await getJSON("assets/vendor/countries-110m.json"); }
   catch (e) { host.innerHTML = `<p class="muted">โหลดแผนที่ไม่สำเร็จ: ${esc(e.message)}</p>`; return; }
 
-  const W = 1000, H = 400;
+  const W = 1000, H = 500;
   const countries = topojson.feature(world, world.objects.countries).features.filter(f => f.id !== "010");
   const proj = d3.geoNaturalEarth1().fitExtent([[10, 10], [W - 10, H - 10]],
-    { type: "MultiPoint", coordinates: [[-128, -28], [152, -28], [-128, 60], [152, 60]] });
+    { type: "MultiPoint", coordinates: [[-126, -16], [150, -16], [-126, 60], [150, 60]] });
   const path = d3.geoPath(proj);
 
   const eq = S.assets.filter(a => MAP_PLACES[a.id] && a.last != null);
@@ -46,13 +46,13 @@ async function renderWorldMap(S) {
   if (eq.some(a => a.id === "SXXP")) EUROPE.forEach(c => homes.add(c));
 
   const maxAbs = Math.max(0.01, ...eq.map(a => Math.abs(a.chg1d || 0)));
-  const rScale = d3.scaleSqrt().domain([0, maxAbs]).range([4, 32]);
+  const rScale = d3.scaleSqrt().domain([0, maxAbs]).range([5, 36]);
   const nodes = eq.map(a => {
     const [label, lon, lat] = MAP_PLACES[a.id];
     const [ax, ay] = proj([lon, lat]);
     const r = rScale(Math.abs(a.chg1d || 0));
     // Labels sit under the bubble, so the collision radius covers bubble + label.
-    return { a, label, ax, ay, x: ax, y: ay, r, cr: Math.max(r + 20, 34) };
+    return { a, label, ax, ay, x: ax, y: ay, r, cr: Math.max(r + 22, 38) };
   });
   d3.forceSimulation(nodes)
     .force("x", d3.forceX(d => d.ax).strength(0.25))
@@ -61,7 +61,7 @@ async function renderWorldMap(S) {
     .stop().tick(300);
   nodes.forEach(n => {
     n.x = Math.max(n.cr, Math.min(W - n.cr, n.x));
-    n.y = Math.max(n.r + 4, Math.min(H - n.r - 28, n.y));
+    n.y = Math.max(n.r + 4, Math.min(H - n.r - 32, n.y));
   });
 
   const f1 = v => v.toFixed(1);
@@ -79,10 +79,13 @@ async function renderWorldMap(S) {
   [...nodes].sort((p, q) => q.r - p.r).forEach(n => {
     g.push(`<a href="chart.html?s=${n.a.id}"><g class="bub ${dirOf(n.a)}" data-id="${n.a.id}">` +
       `<circle cx="${f1(n.x)}" cy="${f1(n.y)}" r="${f1(n.r)}"/>` +
-      `<text x="${f1(n.x)}" y="${f1(n.y + n.r + 12)}">${esc(n.label)}</text>` +
-      `<text class="v" x="${f1(n.x)}" y="${f1(n.y + n.r + 24)}">${fmtPct(n.a.chg1d, 2)}</text></g></a>`);
+      `<text x="${f1(n.x)}" y="${f1(n.y + n.r + 14)}">${esc(n.label)}</text>` +
+      `<text class="v" x="${f1(n.x)}" y="${f1(n.y + n.r + 28)}">${fmtPct(n.a.chg1d, 2)}</text></g></a>`);
   });
   host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="แผนที่โลกแสดงการเปลี่ยนแปลงรายวันของดัชนีหุ้น">${g.join("")}</svg>`;
+  // On narrow screens the map scrolls sideways; start on Asia, where most markets are.
+  const sc = host.closest(".scroll-x");
+  if (sc && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = sc.scrollWidth * 0.72 - sc.clientWidth / 2;
 
   const byId = Object.fromEntries(eq.map(a => [a.id, a]));
   host.addEventListener("mousemove", ev => {
