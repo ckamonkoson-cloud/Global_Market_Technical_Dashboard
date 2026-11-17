@@ -98,21 +98,23 @@ function renderPulse(S) {
 }
 
 // ------------------------------------------------------------ Top movers
+// Full daily ranking of the equity indices; a divider marks where gains turn into losses.
+// Rows share the card's height evenly so the card lines up with the map beside it.
 function renderMovers(S) {
   const eq = S.assets.filter(a => a.kind === "equity" && a.chg1d != null).sort((a, b) => b.chg1d - a.chg1d);
   const max = Math.max(0.001, ...eq.map(a => Math.abs(a.chg1d)));
-  const row = a => {
+  let html = "", divided = false;
+  eq.forEach((a, i) => {
+    if (!divided && a.chg1d < 0 && i > 0) { html += `<div class="mv-zero"><span>0%</span></div>`; divided = true; }
+    if (a.chg1d < 0) divided = true;
     const w = Math.abs(a.chg1d) / max * 100;
-    return `<a class="mv" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">
+    html += `<a class="mv" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">
+      <span class="rk">${i + 1}</span>
       <span class="nm"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span>
       <span class="bar"><i class="${a.chg1d >= 0 ? "pos" : "neg"}" style="width:${w.toFixed(1)}%"></i></span>
       <span class="pc ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span></a>`;
-  };
-  const n = Math.min(5, Math.floor(eq.length / 2));
-  const top = eq.slice(0, n), bottom = eq.slice(-n);
-  document.getElementById("movers").innerHTML =
-    `<div class="mv-h">ดีที่สุด ${n} อันดับ</div>${top.map(row).join("")}` +
-    `<div class="mv-h">แย่ที่สุด ${n} อันดับ</div>${bottom.map(row).join("")}`;
+  });
+  document.getElementById("movers").innerHTML = html;
 }
 
 // ------------------------------------------------------------ Tabs

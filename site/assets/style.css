@@ -261,20 +261,22 @@ a.ticker-item:hover { background: rgba(255,255,255,.06); text-decoration: none; 
 .worldmap { min-width: 640px; }
 .map-legend { margin-bottom: 0; }
 
-.movers { display: flex; flex-direction: column; }
-.mv-h { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin: 4px 0 2px; }
-.mv-h:not(:first-child) { margin-top: 10px; }
+.side-col > .card { flex: 1; display: flex; flex-direction: column; }
+.movers { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
 .mv {
-  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 62px; align-items: center; gap: 10px;
-  padding: 5px 4px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 13px;
+  display: grid; grid-template-columns: 18px minmax(0, 1.3fr) minmax(0, 1fr) 62px; align-items: center; gap: 8px;
+  padding: 3px 4px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 13px;
 }
 .mv:hover { background: var(--surface-2); text-decoration: none; }
+.mv .rk { font-size: 11px; color: var(--text-3); text-align: right; font-variant-numeric: tabular-nums; }
 .mv .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mv .bar { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.mv .bar { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
 .mv .bar i { display: block; height: 100%; border-radius: 4px; }
 .mv .bar i.pos { background: var(--up); }
 .mv .bar i.neg { background: var(--down); margin-left: auto; }
 .mv .pc { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.mv-zero { display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: var(--text-3); font-weight: 600; }
+.mv-zero::before, .mv-zero::after { content: ""; flex: 1; border-top: 1px dashed var(--border); }
 
 .xasset { display: flex; flex-direction: column; gap: 0; margin: 0; }
 .xasset a {
