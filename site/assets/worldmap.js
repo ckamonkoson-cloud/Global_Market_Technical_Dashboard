@@ -98,6 +98,6 @@ async function renderWorldMap(S) {
 function renderCrossAsset(S) {
   const others = S.assets.filter(a => a.kind !== "equity" && a.last != null);
   document.getElementById("xasset").innerHTML = others.map(a => {
-    return `<a href="chart.html?s=${a.id}"><span class="n">${esc(a.name)}</span>${window.sparkSVG ? sparkSVG(a) : "<span></span>"}<span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
+    return `<a href="chart.html?s=${a.id}"><span class="n">${assetIcon(a)}${esc(a.name)}</span>${window.sparkSVG ? sparkSVG(a) : "<span></span>"}<span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
   }).join("");
 }

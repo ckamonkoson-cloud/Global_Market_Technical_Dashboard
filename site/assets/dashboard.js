@@ -46,7 +46,7 @@ document.addEventListener("click", ev => {
 // Current level + change vs previous close (yields: change in basis points).
 function renderTicker(S) {
   const item = a => `<a class="ticker-item" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">` +
-    `<b>${esc(a.name)}</b><span class="lvl">${levelText(a)}</span><span class="chg ticker-${dirOf(a)}">${chgText(a)}</span></a>`;
+    `${assetIcon(a)}<b>${esc(a.name)}</b><span class="lvl">${levelText(a)}</span><span class="chg ticker-${dirOf(a)}">${chgText(a)}</span></a>`;
   const html = S.assets.map(item).join("");
   // Two copies so the -50% scroll loops seamlessly; the copy is hidden from screen readers.
   document.getElementById("ticker").innerHTML =
@@ -282,7 +282,7 @@ function renderTable(S) {
   });
 
   const rowHTML = a => `<tr>
-    <td><span class="dot" style="background:${a.color}"></span><a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
+    <td>${assetIcon(a)}<a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
     <td class="num">${levelText(a)}</td>
     <td class="num ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</td>
     <td class="num">${sparkSVG(a)}</td>

@@ -33,6 +33,29 @@ function stratChip(s) {
   return `<span class="chip s-${s.replace(" ", "-")}">${STRAT_ICON[s] || ""} ${s}</span>`;
 }
 
+// Asset icons: a country flag for anything tied to one market, a drawn icon otherwise.
+// Flags are self-hosted SVGs (flag-icons, MIT) because emoji flags don't render on Windows.
+const ASSET_ICON = {
+  SPX: "us", IXIC: "us", NDX: "us", RUT: "us", US10Y: "us", US02Y: "us",
+  SXXP: "eu", NI225: "jp", TOPIX: "jp", CSI300: "cn", SSEC: "cn",
+  HSI: "hk", HSTECH: "hk", HSCEI: "hk", SENSEX: "in", KOSPI: "kr", SET: "th",
+  USDTHB: ["us", "th"], XAUUSD: "@gold", BRENT: "@oil", DXY: "@dollar", VIX: "@vix",
+};
+const DRAWN_ICON = {
+  gold: `<rect width="20" height="15" rx="2" fill="#5a4a1c"/><path d="M3 12l2-4h4l2 4z M9 12l2-4h4l2 4z M6 7.5l2-4h4l2 4z" fill="#f2c94c" stroke="#a87f12" stroke-width=".6"/>`,
+  oil: `<rect width="20" height="15" rx="2" fill="#2b2b2b"/><path d="M10 2.2c2.3 3.1 3.6 5 3.6 6.6a3.6 3.6 0 0 1-7.2 0c0-1.6 1.3-3.5 3.6-6.6z" fill="#e0e0e0"/><path d="M8.4 9.3a1.6 1.6 0 0 0 1.6 1.6" stroke="#2b2b2b" stroke-width=".8" fill="none" stroke-linecap="round"/>`,
+  dollar: `<rect width="20" height="15" rx="2" fill="#1b5e20"/><text x="10" y="11.6" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Arial, sans-serif">$</text>`,
+  vix: `<rect width="20" height="15" rx="2" fill="#7f1d1d"/><path d="M2 10l3-2 2 3 3-7 2 6 2-3 2 2 2-1" stroke="#ffb4b4" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`,
+};
+function assetIcon(a) {
+  const k = ASSET_ICON[a.id || a];
+  if (!k) return a.color ? `<span class="dot" style="background:${a.color}"></span>` : "";
+  const flag = c => `<img class="flag" src="assets/vendor/flags/${c}.svg" alt="" width="20" height="15" loading="lazy">`;
+  if (Array.isArray(k)) return `<span class="aicon pair">${k.map(flag).join("")}</span>`;
+  if (k[0] === "@") return `<span class="aicon"><svg viewBox="0 0 20 15" width="20" height="15" aria-hidden="true">${DRAWN_ICON[k.slice(1)]}</svg></span>`;
+  return `<span class="aicon">${flag(k)}</span>`;
+}
+
 // Level / daily-change text shared by ticker, table and cross-asset list.
 // Yields (unit "yield") show a % level and a change in basis points.
 function isYield(a) { return a.unit ? a.unit === "yield" : a.id === "US10Y"; }

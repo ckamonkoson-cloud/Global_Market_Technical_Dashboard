@@ -110,7 +110,7 @@ function renderMovers(S) {
     const w = Math.abs(a.chg1d) / max * 100;
     html += `<a class="mv" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">
       <span class="rk">${i + 1}</span>
-      <span class="nm"><span class="dot" style="background:${a.color}"></span>${esc(a.name)}</span>
+      <span class="nm">${assetIcon(a)}${esc(a.name)}</span>
       <span class="bar"><i class="${a.chg1d >= 0 ? "pos" : "neg"}" style="width:${w.toFixed(1)}%"></i></span>
       <span class="pc ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span></a>`;
   });
