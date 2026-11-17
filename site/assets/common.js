@@ -32,6 +32,9 @@ function stratChip(s) { return `<span class="chip s-${s.replace(" ", "-")}">${ST
 function quadChip(q) { return q ? `<span class="chip q-${q}">${q}</span>` : `<span class="muted">–</span>`; }
 
 async function getJSON(url) {
+  // Market data changes several times a day; a unique query string skips the
+  // GitHub Pages CDN cache (max-age=600) so a fresh deploy shows up immediately.
+  if (url.startsWith("data/")) url += (url.includes("?") ? "&" : "?") + "t=" + Date.now();
   const r = await fetch(url, { cache: "no-cache" });
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();

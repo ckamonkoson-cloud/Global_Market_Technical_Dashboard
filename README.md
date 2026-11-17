@@ -7,7 +7,7 @@ Static dashboard (GitHub Pages) of 19 global indices / assets, updated by GitHub
   trend, strategy, performance, monthly rotation and RRG (vs ACWI ETF), writes `site/data/`
 - `site/` — the web page (`index.html` dashboard, `chart.html?s=<ID>` technical chart; Lightweight Charts 5.2.1).
   Support/resistance zones and RSI divergences are computed in the browser (`assets/analysis.js`) for the selected range.
-- `.github/workflows/update.yml` — runs 05:30 Mon–Sat and 18:00 Mon–Fri Bangkok time, or on demand (Actions → Update dashboard → Run workflow)
+- `.github/workflows/update.yml` — runs 04:47 (backup 06:13) Mon–Sat and 18:13 (backup 19:07) Mon–Fri Bangkok time, or on demand (Actions → Update dashboard → Run workflow)
 
 ## Run locally
 

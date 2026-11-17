@@ -2,8 +2,12 @@ name: Update dashboard
 
 on:
   schedule:
-    - cron: "30 22 * * 0-5"   # 05:30 Bangkok, Mon–Sat (after US close; Sat picks up Friday's US session)
-    - cron: "0 11 * * 1-5"    # 18:00 Bangkok, Mon–Fri (after Asia close)
+    # Odd minutes on purpose: GitHub delays or drops scheduled runs at busy times (:00, :30).
+    # Each slot has a backup; a backup run just refreshes the data (same prices, new timestamp).
+    - cron: "47 21 * * 0-5"   # 04:47 Bangkok, Mon–Sat: after US close, before Asia opens (07:00)
+    - cron: "13 23 * * 0-5"   # 06:13 Bangkok, Mon–Sat: backup, still before Asia opens
+    - cron: "13 11 * * 1-5"   # 18:13 Bangkok, Mon–Fri: after Asia close
+    - cron: "7 12 * * 1-5"    # 19:07 Bangkok, Mon–Fri: backup
   workflow_dispatch:           # "Run workflow" button
   push:
     branches: [main]
