@@ -108,7 +108,7 @@ function renderMovers(S) {
       <span class="bar"><i class="${a.chg1d >= 0 ? "pos" : "neg"}" style="width:${w.toFixed(1)}%"></i></span>
       <span class="pc ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span></a>`;
   };
-  const n = Math.min(4, Math.floor(eq.length / 2));
+  const n = Math.min(5, Math.floor(eq.length / 2));
   const top = eq.slice(0, n), bottom = eq.slice(-n);
   document.getElementById("movers").innerHTML =
     `<div class="mv-h">ดีที่สุด ${n} อันดับ</div>${top.map(row).join("")}` +
@@ -204,10 +204,10 @@ function renderRisk(S) {
   if (!R) { card.hidden = true; return; }   // older summary.json without the gauge
   card.hidden = false;
   document.getElementById("risk-sub").textContent =
-    `รวม 6 สัญญาณข้ามสินทรัพย์ · 50 = ระดับปกติของรอบ 1 ปี · ข้อมูลตลาดสหรัฐฯ ถึง ${thDate(R.date)}`;
+    `6 สัญญาณข้ามสินทรัพย์ · 50 = ระดับปกติของรอบ 1 ปี · ข้อมูลถึง ${thDate(R.date)}`;
 
   // --- dial: half circle 0 (left) → 100 (right)
-  const cx = 130, cy = 120, ro = 100, ri = 70;
+  const cx = 130, cy = 120, ro = 100, ri = 72;
   const pt = (v, rad) => {
     const a = Math.PI * (1 - v / 100);
     return [cx + rad * Math.cos(a), cy - rad * Math.sin(a)];
@@ -229,24 +229,24 @@ function renderRisk(S) {
     `</svg><div class="rd-score">${R.score.toFixed(0)}<small>/100</small></div>` +
     `<div class="rd-label" style="color:${band.c}">${esc(R.label)}</div>${chg}`;
 
-  // --- components: bar centred on 50, filled toward the side the signal points to
+  // --- components: one compact row each; bar centred on 50, filled toward the side it points to
   document.getElementById("risk-comps").innerHTML = R.components.map(c => {
     const p = c.pct;
     const side = p == null ? "" : p >= 50 ? "on" : "off";
     const left = p == null ? 50 : Math.min(p, 50), width = p == null ? 0 : Math.abs(p - 50);
-    return `<div class="rc" title="${esc(c.desc)}">
-      <div class="rc-top"><span class="rc-name">${esc(c.name)}</span><span class="rc-raw">${riskRaw(c)}</span></div>
-      <div class="rc-bar"><i class="mid"></i><b class="${side}" style="left:${left}%;width:${width}%"></b></div>
-      <div class="rc-desc">${esc(c.desc)} · <span class="${side === "on" ? "pos" : side === "off" ? "neg" : "muted"}">${p == null ? "–" : (side === "on" ? "Risk-On " : "Risk-Off ") + p.toFixed(0)}</span></div>
-    </div>`;
-  }).join("") + `<div class="rc-axis"><span>◀ Risk-Off</span><span>Risk-On ▶</span></div>`;
+    const tip = `${c.desc} · ค่าล่าสุด ${riskRaw(c)} · percentile ${p == null ? "–" : p.toFixed(0)} → ${side === "on" ? "Risk-On" : side === "off" ? "Risk-Off" : "–"}`;
+    return `<div class="rc" title="${esc(tip)}">
+      <span class="rc-name">${esc(c.name)}</span>
+      <span class="rc-bar"><i class="mid"></i><b class="${side}" style="left:${left}%;width:${width}%"></b></span>
+      <span class="rc-raw">${riskRaw(c)}</span></div>`;
+  }).join("") + `<div class="rc rc-axis"><span></span><span class="ax"><span>◀ Risk-Off</span><span>Risk-On ▶</span></span><span></span></div>`;
 
   // --- history line with regime bands
-  const H = R.history, W = 360, Ht = 150, m = { l: 26, r: 8, t: 6, b: 18 };
+  const H = R.history, W = 600, Ht = 92, m = { l: 24, r: 6, t: 4, b: 16 };
   const sx = i => m.l + i / Math.max(1, H.length - 1) * (W - m.l - m.r);
   const sy = v => m.t + (100 - v) / 100 * (Ht - m.t - m.b);
   let g = RISK_BANDS.map(b => `<rect x="${m.l}" y="${sy(b.hi)}" width="${W - m.l - m.r}" height="${sy(b.lo) - sy(b.hi)}" fill="${b.c}" opacity=".10"/>`).join("");
-  [0, 30, 50, 70, 100].forEach(v => {
+  [30, 50, 70].forEach(v => {
     g += `<line x1="${m.l}" x2="${W - m.r}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--grid)"/>` +
       `<text x="${m.l - 4}" y="${sy(v) + 3.5}" class="rh-tick" text-anchor="end">${v}</text>`;
   });
