@@ -97,7 +97,8 @@ async function renderWorldMap(S) {
 // Non-equity assets have no single home market, so they sit under the map as tiles.
 function renderCrossAsset(S) {
   const others = S.assets.filter(a => a.kind !== "equity" && a.last != null);
-  document.getElementById("xasset").innerHTML = others.map(a => {
+  const head = `<div class="xh"><span>สินทรัพย์</span><span class="sp">3 เดือน</span><span>ระดับล่าสุด</span><span>เทียบวันก่อน</span></div>`;
+  document.getElementById("xasset").innerHTML = head + others.map(a => {
     return `<a href="chart.html?s=${a.id}"><span class="n">${assetIcon(a)}${esc(a.name)}</span>${window.sparkSVG ? sparkSVG(a) : "<span></span>"}<span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
   }).join("");
 }

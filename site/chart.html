@@ -30,7 +30,7 @@
           <span class="muted">แสดง:</span>
           <label><input type="checkbox" data-k="ema50"> EMA50</label>
           <label><input type="checkbox" data-k="ema200"> EMA200</label>
-          <label><input type="checkbox" data-k="rsi"> RSI + Divergence</label>
+          <label><input type="checkbox" data-k="rsi"> RSI</label>
           <label><input type="checkbox" data-k="sr"> แนวรับ/แนวต้าน</label>
         </div>
         <button class="btn" id="export" type="button" title="เปิดหน้าต่างพิมพ์ แล้วเลือก Save as PDF">⤓ Export PDF</button>
@@ -40,8 +40,6 @@
         <span data-k="ema200"><i style="background:var(--ema200)"></i>EMA200</span>
         <span data-k="sr"><i class="dash" style="border-color:var(--support)"></i>แนวรับ (S)</span>
         <span data-k="sr"><i class="dash" style="border-color:var(--resist)"></i>แนวต้าน (R)</span>
-        <span data-k="rsi"><i style="background:var(--div-bull)"></i>Bullish divergence</span>
-        <span data-k="rsi"><i style="background:var(--div-bear)"></i>Bearish divergence</span>
         <span data-k="rsi" class="muted">ช่องล่าง: RSI(14) เส้น 70 / 30</span>
         <span data-k="sr" class="muted">เส้นหนา = โซนที่ราคาแตะบ่อย</span>
       </div>
@@ -56,7 +54,6 @@
         <tr><th>แนวรับ</th><td id="i-sup">–</td></tr>
         <tr><th>แนวต้าน</th><td id="i-res">–</td></tr>
         <tr><th>RSI (Signal)</th><td id="i-rsi">–</td></tr>
-        <tr><th>Strategy</th><td id="i-strat">–</td></tr>
       </table>
       <div class="narr"><h3>แนวโน้ม:</h3><p id="narr" style="margin:0"></p></div>
       <p class="muted" id="i-note" style="font-size:12px;margin:12px 0 0"></p>
@@ -67,6 +64,7 @@
 <script src="assets/vendor/lightweight-charts.standalone.production.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/analysis.js"></script>
+<script src="assets/techchart.js"></script>
 <script src="assets/chart.js"></script>
 </body>
 </html>
