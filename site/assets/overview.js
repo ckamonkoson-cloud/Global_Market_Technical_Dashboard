@@ -87,11 +87,6 @@ function renderPulse(S) {
         { label: "Lag", n: count(eq, "quadrant", "Lagging"), c: "var(--down)" },
         { label: "Impr", n: count(eq, "quadrant", "Improving"), c: "var(--accent)" }]),
     },
-    {
-      k: "Strategy", v: `${count(S.assets, "strategy", "BREAKOUT") + count(S.assets, "strategy", "BUY DIP")} <small>BREAKOUT + BUY DIP</small>`,
-      d: `<div class="strat-counts">${["BREAKOUT", "BUY DIP", "WATCH", "CORRECTION", "AVOID"].map(s =>
-        `<a href="#glossary" class="chip-link">${stratChip(s)} <b>${count(S.assets, "strategy", s)}</b></a>`).join("")}</div>`,
-    },
   ];
   document.getElementById("pulse").innerHTML = tiles.map(t =>
     `<div class="tile"><div class="k">${t.k}</div><div class="v">${t.v}</div><div class="d">${t.d}</div></div>`).join("");

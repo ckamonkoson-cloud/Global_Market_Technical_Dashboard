@@ -34,7 +34,7 @@ ASSETS = [
 # How the front end formats levels/changes: yields show "%" levels and bp changes.
 YIELD_IDS = {"US10Y", "US02Y"}
 # A trend/Strategy flag on a fear index would read backwards (a VIX "BREAKOUT" is not a buy).
-NO_STRATEGY = {"VIX"}
+NO_STRATEGY = {"VIX", "US10Y", "US02Y"}  # not price charts: a fear gauge and two yields
 
 # Inputs used only by the Risk-On / Risk-Off gauge (not shown as rows).
 # id, name, symbol, exchange
