@@ -71,6 +71,15 @@ function chgText(a) {
   }
   return `${arrow} ${fmtPct(a.chg1d, 2)}`;
 }
+// Tooltip text: is the latest bar a final close, or a snapshot taken while the market was open?
+function asOfTip(a) {
+  if (!a || !a.lastDate) return "";
+  if (a.intraday) {
+    const t = a.asOf ? new Date(a.asOf).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" }) : "";
+    return `ข้อมูลระหว่างวัน ${thDate(a.lastDate)}${t ? ` ณ ${t} น. (เวลาไทย)` : ""} · ตลาดยังไม่ปิด ราคายังเปลี่ยนได้`;
+  }
+  return `ราคาปิดตลาด ${thDate(a.lastDate)}`;
+}
 function quadChip(q) { return q ? `<span class="chip q-${q}">${q}</span>` : `<span class="muted">–</span>`; }
 
 async function getJSON(url) {

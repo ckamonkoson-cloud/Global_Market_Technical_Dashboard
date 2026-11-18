@@ -14,7 +14,7 @@
   const b = A.bars, LAST = b.t.length - 1;
   document.title = `Technical Chart: ${A.name}`;
   document.getElementById("title").innerHTML = `${assetIcon(A)}Technical Chart: ${esc(A.name)}`;
-  document.getElementById("src").textContent = `${A.group} · ${A.source} · Daily`;
+  document.getElementById("src").textContent = `${A.group} · ${A.source} · Daily · ${asOfTip({ ...A, lastDate: b.t[LAST] })}`;
   document.getElementById("foot").textContent =
     `ที่มา: TradingView (ผ่าน tvdatafeed) ณ วันที่ ${thDate(b.t[LAST])} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 

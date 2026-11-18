@@ -80,7 +80,7 @@
             <div class="pg-class">${esc(sub)}</div>
             <h2>${eager(assetIcon(A))}${esc(A.name)}</h2>
           </div>
-          <div class="pg-meta">${esc(A.source)} · Daily · ช่วง ${RANGE}<br>ข้อมูล ณ ${thDate(last)}</div>
+          <div class="pg-meta">${esc(A.source)} · Daily · ช่วง ${RANGE}<br>${esc(asOfTip({ ...A, lastDate: last }))}</div>
         </header>
         <div class="pg-body">
           <div class="pg-chart">

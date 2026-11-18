@@ -36,6 +36,24 @@ YIELD_IDS = {"US10Y", "US02Y"}
 # A trend/Strategy flag on a fear index would read backwards (a VIX "BREAKOUT" is not a buy).
 NO_STRATEGY = {"VIX", "US10Y", "US02Y"}  # not price charts: a fear gauge and two yields
 
+# When each asset's daily bar is final: exchange time zone and local close time
+# (a few minutes after the official close, to cover closing auctions).
+# A bar is "intraday" if it was fetched before this time on the bar's own date.
+# 24-hour markets (yields, gold, FX, DXY) roll their daily bar at 17:00 New York.
+SESSION_CLOSE = {
+    "SPX": ("America/New_York", "16:05"), "IXIC": ("America/New_York", "16:05"),
+    "NDX": ("America/New_York", "16:05"), "RUT": ("America/New_York", "16:05"),
+    "SXXP": ("Europe/Berlin", "17:40"),
+    "NI225": ("Asia/Tokyo", "15:35"), "TOPIX": ("Asia/Tokyo", "15:35"),
+    "CSI300": ("Asia/Shanghai", "15:05"), "SSEC": ("Asia/Shanghai", "15:05"),
+    "HSI": ("Asia/Hong_Kong", "16:15"), "HSTECH": ("Asia/Hong_Kong", "16:15"), "HSCEI": ("Asia/Hong_Kong", "16:15"),
+    "SENSEX": ("Asia/Kolkata", "15:35"), "KOSPI": ("Asia/Seoul", "15:35"), "SET": ("Asia/Bangkok", "16:45"),
+    "US10Y": ("America/New_York", "17:00"), "US02Y": ("America/New_York", "17:00"),
+    "XAUUSD": ("America/New_York", "17:00"), "BRENT": ("Europe/London", "23:00"),
+    "USDTHB": ("America/New_York", "17:00"), "DXY": ("America/New_York", "17:00"),
+    "VIX": ("America/New_York", "16:20"),
+}
+
 # Inputs used only by the Risk-On / Risk-Off gauge (not shown as rows).
 # id, name, symbol, exchange
 AUX = [

@@ -103,7 +103,7 @@ function renderMovers(S) {
     if (!divided && a.chg1d < 0 && i > 0) { html += `<div class="mv-zero"><span>0%</span></div>`; divided = true; }
     if (a.chg1d < 0) divided = true;
     const w = Math.abs(a.chg1d) / max * 100;
-    html += `<a class="mv" href="chart.html?s=${a.id}" title="${esc(a.name)} · ข้อมูล ณ ${thDate(a.lastDate)}">
+    html += `<a class="mv" href="chart.html?s=${a.id}" title="${esc(a.name)} · ${esc(asOfTip(a))}">
       <span class="rk">${i + 1}</span>
       <span class="nm">${assetIcon(a)}${esc(a.name)}</span>
       <span class="bar"><i class="${a.chg1d >= 0 ? "pos" : "neg"}" style="width:${w.toFixed(1)}%"></i></span>

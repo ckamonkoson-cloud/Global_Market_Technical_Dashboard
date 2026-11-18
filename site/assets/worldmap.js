@@ -79,7 +79,7 @@ async function renderWorldMap(S) {
     const b = ev.target.closest(".bub");
     if (!b) return Tip.hide();
     const a = byId[b.dataset.id];
-    Tip.show(`<b>${esc(a.name)}</b>${fmtNum(a.last, 2)} · <span class="${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span><br><span class="muted">ราคาปิด ${thDate(a.lastDate)} เทียบวันก่อนหน้า</span>`, ev);
+    Tip.show(`<b>${esc(a.name)}</b>${fmtNum(a.last, 2)} · <span class="${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span><br><span class="muted">${esc(asOfTip(a))} · เทียบวันก่อนหน้า</span>`, ev);
   });
   host.addEventListener("mouseleave", () => Tip.hide());
 
@@ -99,6 +99,6 @@ function renderCrossAsset(S) {
   const others = S.assets.filter(a => a.kind !== "equity" && a.last != null);
   const head = `<div class="xh"><span>สินทรัพย์</span><span class="sp">3 เดือน</span><span>ระดับล่าสุด</span><span>เทียบวันก่อน</span></div>`;
   document.getElementById("xasset").innerHTML = head + others.map(a => {
-    return `<a href="chart.html?s=${a.id}"><span class="n">${assetIcon(a)}${esc(a.name)}</span>${window.sparkSVG ? sparkSVG(a) : "<span></span>"}<span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
+    return `<a href="chart.html?s=${a.id}" title="${esc(a.name)} · ${esc(asOfTip(a))}"><span class="n">${assetIcon(a)}${esc(a.name)}</span>${window.sparkSVG ? sparkSVG(a) : "<span></span>"}<span class="l">${levelText(a)}</span><span class="c ${dirOf(a)}">${chgText(a)}</span></a>`;
   }).join("");
 }

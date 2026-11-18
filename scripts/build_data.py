@@ -12,7 +12,8 @@ import logging
 import math
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, time as dtime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import numpy as np
@@ -52,6 +53,16 @@ def normalize(df):
     out = out[~out.index.duplicated(keep="last")].sort_index()
     out = out[out.index.dayofweek < 5]  # futures/FX Sunday-session bars must not become weekend dates
     return out.dropna()
+
+
+def bar_status(aid, bar_date, fetched_at):
+    """(intraday?, fetch time as ISO UTC or None). Intraday = fetched before that bar's session close."""
+    if fetched_at is None or aid not in C.SESSION_CLOSE:
+        return False, None
+    tz, hhmm = C.SESSION_CLOSE[aid]
+    h, m = map(int, hhmm.split(":"))
+    close_at = datetime.combine(bar_date.date(), dtime(h, m), ZoneInfo(tz))
+    return fetched_at < close_at, fetched_at.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def load_previous(asset_id):
@@ -284,13 +295,14 @@ def main():
     from tvDatafeed import TvDatafeed
     tv = TvDatafeed()
 
-    frames, sources, fresh = {}, {}, 0
+    frames, sources, fetched, fresh = {}, {}, {}, 0
     targets = ([(a[0], a[3], a[4]) for a in C.ASSETS] + [(C.BENCHMARK[0], C.BENCHMARK[2], C.BENCHMARK[3])]
                + [(a[0], a[2], a[3]) for a in C.AUX])
     for aid, sym, ex in targets:
         df = fetch(tv, sym, ex)
         if df is not None:
             frames[aid] = normalize(df)
+            fetched[aid] = datetime.now(timezone.utc)
             fresh += 1
             log.info("OK   %-7s %s:%s  %d bars, last %s", aid, ex, sym, len(frames[aid]),
                      frames[aid].index[-1].date())
@@ -336,11 +348,13 @@ def main():
 
         strategy = None if aid in C.NO_STRATEGY else strategy_of(kind, trend, quadrant, dist, last, l50)
         chg1d = pct(last, float(close.iloc[-2])) if len(close) > 1 else None
+        intraday, as_of = bar_status(aid, close.index[-1], fetched.get(aid))
 
         summary_assets.append({
             "id": aid, "name": name, "group": group, "kind": kind, "color": color,
             "unit": "yield" if aid in C.YIELD_IDS else "level",
             "source": sources[aid], "lastDate": close.index[-1].strftime("%Y-%m-%d"),
+            "intraday": intraday, "asOf": as_of,
             "last": r(last, 4), "prev": r(float(close.iloc[-2]), 4) if len(close) > 1 else None, "chg1d": r(chg1d), "ema50": r(l50, 4), "ema200": r(l200, 4),
             "rsi": r(float(rs.iloc[-1]), 2), "high52": r(hi52, 4), "distHigh": r(dist),
             "trend": trend, "quadrant": quadrant, "strategy": strategy,
@@ -355,6 +369,7 @@ def main():
         (ASSET_DIR / f"{aid}.json").write_text(json.dumps({
             "id": aid, "name": name, "group": group, "kind": kind, "source": sources[aid],
             "trend": trend, "strategy": strategy, "quadrant": quadrant,
+            "intraday": intraday, "asOf": as_of,
             "bars": {
                 "t": [d.strftime("%Y-%m-%d") for d in df.index],
                 "o": [r(v, 4) for v in df["open"]], "h": [r(v, 4) for v in df["high"]],
