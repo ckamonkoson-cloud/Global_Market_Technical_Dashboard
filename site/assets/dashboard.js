@@ -92,7 +92,25 @@ function renderPerformance(S, byId) {
 }
 
 // ------------------------------------------------------------ Rotation heatmap
+// Rotation cells are coloured by return (diverging green/red, fixed steps shared by every month),
+// not by asset: identity comes from the flag + name, and hovering traces one asset across months.
+const ROT_STEPS = [0.005, 0.02, 0.04, 0.07];   // |return| thresholds for steps 1..4; below 0.5% = neutral
+function rotStep(r) {
+  let k = 0;
+  for (const t of ROT_STEPS) if (Math.abs(r) >= t) k++;
+  return k === 0 ? "z" : (r > 0 ? "p" : "n") + k;
+}
+function renderRotLegend() {
+  const el = document.getElementById("rot-legend");
+  if (!el) return;
+  const pct = v => `${v > 0 ? "+" : ""}${+(v * 100).toFixed(1)}%`;
+  const neg = [4, 3, 2, 1].map(k => `<span class="rk n${k}" title="${k === 4 ? "ต่ำกว่า " + pct(-ROT_STEPS[3]) : pct(-ROT_STEPS[k]) + " ถึง " + pct(-ROT_STEPS[k - 1])}"></span>`);
+  const pos = [1, 2, 3, 4].map(k => `<span class="rk p${k}" title="${k === 4 ? "มากกว่า " + pct(ROT_STEPS[3]) : pct(ROT_STEPS[k - 1]) + " ถึง " + pct(ROT_STEPS[k])}"></span>`);
+  el.innerHTML = `<span class="lb">ติดลบ ${pct(-ROT_STEPS[3])}</span>${neg.join("")}<span class="rk z" title="ระหว่าง ±0.5%"></span>${pos.join("")}<span class="lb">บวก ${pct(ROT_STEPS[3])}</span>`;
+}
+
 function renderRotation(S, byId) {
+  renderRotLegend();
   const cols = S.rotation;
   const root = document.getElementById("rot");
   root.style.gridTemplateColumns = `repeat(${cols.length}, minmax(96px, 1fr))`;
@@ -103,8 +121,8 @@ function renderRotation(S, byId) {
       const cell = c.cells[i];
       if (!cell) { html += "<div></div>"; continue; }
       const a = byId[cell.id];
-      html += `<div class="cell" data-id="${cell.id}" data-m="${c.label}" style="background:${a.color}">
-        <b>${esc(a.name)}</b><span>${fmtPct(cell.ret)}</span></div>`;
+      html += `<div class="cell ${rotStep(cell.ret)}" data-id="${cell.id}" data-m="${c.label}">
+        <b>${assetIcon(a)}${esc(a.name)}</b><span>${fmtPct(cell.ret)}</span></div>`;
     }
   }
   root.innerHTML = html;
