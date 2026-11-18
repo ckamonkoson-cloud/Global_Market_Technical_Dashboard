@@ -33,14 +33,7 @@ body.pack { background: #dfe3e9; margin: 0; }
 /* ---------- cover ---------- */
 .cover {
   justify-content: center; align-items: center; text-align: center; color: #fff;
-  background:
-    radial-gradient(ellipse 34% 30% at 46% 2%, rgba(214, 190, 150, .38), transparent 70%),
-    radial-gradient(ellipse 18% 16% at 35% 20%, rgba(200, 205, 220, .22), transparent 70%),
-    radial-gradient(ellipse 22% 30% at 2% 14%, rgba(205, 195, 170, .26), transparent 70%),
-    radial-gradient(ellipse 30% 40% at 98% 60%, rgba(150, 160, 185, .22), transparent 70%),
-    radial-gradient(ellipse 40% 30% at 70% 100%, rgba(110, 125, 160, .20), transparent 70%),
-    radial-gradient(ellipse 60% 50% at 50% 55%, #16305e 0%, transparent 80%),
-    #121d3a;
+  background: #172a55;
 }
 .cv-inner { transform: translateY(-4mm); }
 .cover h1 { margin: 0; font-size: 50pt; font-weight: 700; letter-spacing: .01em; line-height: 1.1; font-family: "Segoe UI", "Sarabun", system-ui, sans-serif; }
