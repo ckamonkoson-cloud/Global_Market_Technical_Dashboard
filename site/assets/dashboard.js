@@ -54,50 +54,94 @@ function renderTicker(S) {
 }
 
 // ------------------------------------------------------------ Performance
+// One full-width view with a period picker, shown either as a bar chart or as a heatmap
+// (assets x periods). Bars and heatmap cells use the same green/red language as Rotation.
+const PERF_KEYS = ["MTD", "1M", "3M", "6M", "12M"];
+// heatmap colour steps widen with the horizon, so a 12M column isn't all dark (ROT_STEPS x this)
+const PERF_STEP_SCALE = { MTD: 1, "1M": 1, "3M": 1.7, "6M": 2.4, "12M": 3.5 };
 function renderPerformance(S, byId) {
-  const keys = ["MTD", "1M", "3M", "6M", "12M"];
   const ids = Object.keys(S.performance);
-
   const root = document.getElementById("perf");
-  root.innerHTML = keys.map(k => {
-    const rows = ids.map(id => ({ id, v: S.performance[id][k] })).filter(r => r.v != null)
-      .sort((a, b) => b.v - a.v);
-    // each panel has its own scale; the value labels need ~38px either side of the bars
+  const ctl = document.getElementById("perf-ctl");
+  const load = (k, ok, d) => { try { const v = localStorage.getItem(k); return ok(v) ? v : d; } catch (e) { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } };
+  const st = {
+    view: load("gmtd-perf-view", v => v === "bar" || v === "heat", "bar"),
+    k: load("gmtd-perf-period", v => PERF_KEYS.includes(v), "MTD"),
+  };
+
+  const seg = (name, opts, cur) => `<div class="seg" role="group" aria-label="${name}">${opts.map(([v, l]) =>
+    `<button data-${name}="${v}" aria-pressed="${v === cur}">${l}</button>`).join("")}</div>`;
+  function drawCtl() {
+    ctl.innerHTML = seg("view", [["bar", "▤ Bar"], ["heat", "▦ Heatmap"]], st.view) +
+      seg("k", PERF_KEYS.map(k => [k, k]), st.k);
+  }
+  ctl.addEventListener("click", ev => {
+    const b = ev.target.closest("button"); if (!b) return;
+    if (b.dataset.view) { st.view = b.dataset.view; save("gmtd-perf-view", st.view); }
+    if (b.dataset.k) { st.k = b.dataset.k; save("gmtd-perf-period", st.k); }
+    draw();
+  });
+
+  const sorted = k => ids.map(id => ({ id, v: S.performance[id][k] })).filter(r => r.v != null).sort((a, b) => b.v - a.v);
+
+  function barHTML() {
+    const rows = sorted(st.k);
     const hi = Math.max(0, ...rows.map(r => r.v)), lo = Math.min(0, ...rows.map(r => r.v));
     const span = (hi - lo) || 0.01;
-    const padL = lo < 0 ? 22 : 2, padR = hi > 0 ? 22 : 2; // percent of track reserved for labels
-    const scale = (100 - padL - padR) / span;
-    const zero = padL + (-lo) * scale;
-    return `<div class="perf-panel"><h3>${k} Return (%)</h3>${rows.map(r => {
-      const a = byId[r.id];
-      const w = Math.abs(r.v) * scale;
-      const pos = r.v >= 0;
+    const padL = lo < 0 ? 9 : 1, padR = hi > 0 ? 9 : 1;   // % of the track kept free for value labels
+    const scale = (100 - padL - padR) / span, zero = padL + (-lo) * scale;
+    return `<div class="pbar">${rows.map(r => {
+      const a = byId[r.id], w = Math.abs(r.v) * scale, pos = r.v >= 0;
       const bar = pos ? `left:${zero}%;width:${w}%` : `left:${zero - w}%;width:${w}%`;
-      const val = pos ? `left:calc(${zero + w}% + 3px)` : `right:calc(${100 - zero + w}% + 3px)`;
-      return `<div class="perf-row" data-id="${r.id}" data-k="${k}">
-        <div class="lbl">${esc(a.name)}</div>
-        <div class="perf-track"><div class="zero" style="left:${zero}%"></div>
-          <div class="perf-bar ${pos ? "pos" : "neg"}" style="${bar};background:${a.color}"></div>
-          <div class="perf-val" style="${val}">${fmtPct(r.v)}</div></div></div>`;
+      const val = pos ? `left:calc(${zero + w}% + 5px)` : `right:calc(${100 - zero + w}% + 5px)`;
+      return `<div class="pb-row" data-id="${r.id}"><div class="pb-lbl">${assetIcon(a)}<span>${esc(a.name)}</span></div>
+        <div class="pb-track"><div class="zero" style="left:${zero}%"></div>
+        <div class="pb-bar ${pos ? "pos" : "neg"}" style="${bar}"></div>
+        <div class="pb-val ${cls(r.v)}" style="${val}">${fmtPct(r.v)}</div></div></div>`;
     }).join("")}</div>`;
-  }).join("");
+  }
 
+  function heatHTML() {
+    const rows = sorted(st.k);
+    return `<table class="pheat"><thead><tr><th>สินทรัพย์</th>${PERF_KEYS.map(k =>
+      `<th class="num${k === st.k ? " on" : ""}"><button data-k="${k}" title="เรียงตาม ${k}">${k}${k === st.k ? " ▼" : ""}</button></th>`).join("")}</tr></thead><tbody>${
+      rows.map(r => {
+        const a = byId[r.id];
+        return `<tr data-id="${r.id}"><td>${assetIcon(a)}${esc(a.name)}</td>${PERF_KEYS.map(k => {
+          const v = S.performance[r.id][k];
+          return v == null ? `<td class="num">–</td>` : `<td class="num hm ${rotStep(v, PERF_STEP_SCALE[k])}${k === st.k ? " on" : ""}">${fmtPct(v)}</td>`;
+        }).join("")}</tr>`;
+      }).join("")}</tbody></table>`;
+  }
+
+  function draw() {
+    drawCtl();
+    root.innerHTML = st.view === "bar" ? barHTML() : heatHTML();
+    root.dataset.view = st.view;
+  }
+  root.addEventListener("click", ev => {   // heatmap header = choose the sort period
+    const b = ev.target.closest("th button[data-k]"); if (!b) return;
+    st.k = b.dataset.k; save("gmtd-perf-period", st.k); draw();
+  });
   root.addEventListener("mousemove", ev => {
-    const row = ev.target.closest(".perf-row");
+    const row = ev.target.closest("[data-id]");
     if (!row) return Tip.hide();
-    const a = byId[row.dataset.id], v = S.performance[row.dataset.id][row.dataset.k];
-    Tip.show(`<b>${esc(a.name)}</b>${row.dataset.k}: ${fmtPct(v, 2)}<br><span class="muted">ข้อมูลถึง ${thDate(a.lastDate)}</span>`, ev);
+    const a = byId[row.dataset.id], P = S.performance[row.dataset.id];
+    Tip.show(`<b>${esc(a.name)}</b>${PERF_KEYS.map(k => `${k}: <span class="${cls(P[k])}">${fmtPct(P[k], 2)}</span>`).join("<br>")}` +
+      `<br><span class="muted">${esc(asOfTip(a))}</span>`, ev);
   });
   root.addEventListener("mouseleave", () => Tip.hide());
+  draw();
 }
 
 // ------------------------------------------------------------ Rotation heatmap
 // Rotation cells are coloured by return (diverging green/red, fixed steps shared by every month),
 // not by asset: identity comes from the flag + name, and hovering traces one asset across months.
 const ROT_STEPS = [0.005, 0.02, 0.04, 0.07];   // |return| thresholds for steps 1..4; below 0.5% = neutral
-function rotStep(r) {
+function rotStep(r, scale = 1) {
   let k = 0;
-  for (const t of ROT_STEPS) if (Math.abs(r) >= t) k++;
+  for (const t of ROT_STEPS) if (Math.abs(r) >= t * scale) k++;
   return k === 0 ? "z" : (r > 0 ? "p" : "n") + k;
 }
 function renderRotLegend() {

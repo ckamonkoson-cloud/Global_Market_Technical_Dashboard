@@ -6,7 +6,7 @@
 <title>Global Market Technical Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261118d">
+<link rel="stylesheet" href="assets/style.css?v=20261118e">
 </head>
 <body>
 <header class="masthead">
@@ -120,8 +120,9 @@
     </div>
 
     <div class="pane" role="tabpanel" id="pane-performance" aria-labelledby="tab-performance">
-      <p class="sub">ผลตอบแทนในสกุลเงินท้องถิ่น (ไม่รวม US 10Y Yield) · แต่ละช่วงเวลาใช้สเกลของตัวเอง</p>
-      <div class="perf-grid" id="perf"></div>
+      <p class="sub">ผลตอบแทนในสกุลเงินท้องถิ่น (ไม่รวม bond yield และ VIX) · เลือกช่วงเวลาเพื่อเรียงลำดับ · ชี้ที่แถวเพื่อดูครบทุกช่วง · Heatmap: ระดับสีกว้างขึ้นตามความยาวช่วงเวลา</p>
+      <div class="perf-ctl" id="perf-ctl"></div>
+      <div class="scroll-x"><div id="perf"></div></div>
     </div>
 
     <div class="pane" role="tabpanel" id="pane-rotation" aria-labelledby="tab-rotation" hidden>
@@ -220,9 +221,9 @@
 </div>
 <script src="assets/vendor/d3.min.js"></script>
 <script src="assets/vendor/topojson-client.min.js"></script>
-<script src="assets/common.js?v=20261118d"></script>
-<script src="assets/worldmap.js?v=20261118d"></script>
-<script src="assets/overview.js?v=20261118d"></script>
-<script src="assets/dashboard.js?v=20261118d"></script>
+<script src="assets/common.js?v=20261118e"></script>
+<script src="assets/worldmap.js?v=20261118e"></script>
+<script src="assets/overview.js?v=20261118e"></script>
+<script src="assets/dashboard.js?v=20261118e"></script>
 </body>
 </html>
