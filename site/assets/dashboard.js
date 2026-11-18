@@ -281,8 +281,8 @@ function renderTable(S) {
     draw();
   });
 
-  const rowHTML = a => `<tr>
-    <td>${assetIcon(a)}<a href="chart.html?s=${a.id}" title="${esc(asOfTip(a))}">${esc(a.name)}</a></td>
+  const rowHTML = a => `<tr title="${esc(a.name)} · ${esc(asOfTip(a))}">
+    <td>${assetIcon(a)}<a href="chart.html?s=${a.id}">${esc(a.name)}</a></td>
     <td class="num">${levelText(a)}</td>
     <td class="num ${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</td>
     <td class="num">${sparkSVG(a)}</td>
@@ -291,7 +291,7 @@ function renderTable(S) {
     <td>${trendChip(a.trend)}</td>
     <td><a class="chip-link" href="#glossary" title="ดูคำอธิบาย Strategy">${stratChip(a.strategy)}</a></td>
     <td>${quadChip(a.quadrant)}</td>
-    <td class="muted">${thDate(a.lastDate)}</td></tr>`;
+    <td class="muted">${thDate(a.lastDate)}${a.intraday ? ` <span class="intra">ระหว่างวัน${asOfTime(a) ? " " + asOfTime(a) : ""}</span>` : ""}</td></tr>`;
 
   function draw() {
     const test = REGIONS.find(r => r.k === state.region).test;
