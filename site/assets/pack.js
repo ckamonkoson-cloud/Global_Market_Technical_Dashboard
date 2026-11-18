@@ -121,6 +121,5 @@
   prog.hidden = true;
   btn.disabled = false;
   btn.addEventListener("click", () => window.print());
-  document.body.dataset.ready = "1";
-  if (!new URLSearchParams(location.search).has("noprint")) window.print();
+  document.body.dataset.ready = "1";   // the user opens the print dialog with the button
 })();
