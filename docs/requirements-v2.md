@@ -1,6 +1,7 @@
 # Global Market Technical Dashboard: Requirements v2.0
 
 - **เวอร์ชัน:** v2.0 (git tag `v2.0`) เผยแพร่ 17 พ.ย. 2026
+- **อัปเดตล่าสุด:** 18 พ.ย. 2026 (ข้อ 9–12)
 - **เว็บไซต์:** https://ckamonkoson-cloud.github.io/Global_Market_Technical_Dashboard/
 - **ฐาน:** ทุกข้อใน [requirements-v1.md](requirements-v1.md) ยังใช้เหมือนเดิม ได้แก่ ข้อมูล, รายชื่อสินทรัพย์ 19 ตัว, รอบอัปเดต, สูตร Trend / Strategy / Performance / Rotation / RRG, แนวรับแนวต้าน, divergence และหน้ากราฟ เอกสารนี้บันทึกเฉพาะส่วนที่**เพิ่มหรือเปลี่ยน**ใน v2
 
@@ -18,6 +19,12 @@
 | 6 | ไลบรารีและข้อมูลแผนที่ | โหลดจาก CDN (jsDelivr, unpkg) | เก็บไว้ใน repo (`site/assets/vendor/`) เพราะเครือข่ายองค์กรบางแห่งบล็อก CDN |
 | 7 | รอบอัปเดต | 05:30 และ 18:00 น. | 04:47 + สำรอง 06:13 และ 18:13 + สำรอง 19:07 น. (ดูข้อ 5) |
 | 8 | cache ข้อมูล | ติด cache ของ GitHub Pages ได้ถึง 10 นาที | ขอไฟล์ข้อมูลด้วย `?t=<เวลา>` ทุกครั้ง ข้อมูลใหม่ขึ้นทันทีหลัง deploy |
+| 9 | หน้ากราฟ | ป้าย S/R ทางขวา, มีเส้น divergence และแถว Strategy | ป้าย S/R ชิดซ้าย, ไม่มีเส้น divergence และแถว Strategy, แก้ปัญหา Export PDF ครั้งแรกไม่มีกราฟ (ข้อ 9) |
+| 10 | Chart Pack | ไม่มี | ปุ่ม Chart Pack (PDF): หน้าปก + หน้าละสินทรัพย์ เขียน Internal Use Only ทุกหน้า (ข้อ 9) |
+| 11 | การ์ดสรุป / Strategy | 5 การ์ด, bond yield มี Strategy | 4 การ์ด (เอาการ์ด Strategy ออก), US10Y/US2Y/VIX ไม่มี Strategy (ข้อ 9) |
+| 12 | ราคาปิดหรือระหว่างวัน | ไม่บอก | tooltip และป้าย "ระหว่างวัน HH:MM" (ข้อ 10) |
+| 13 | Market Rotation | สีประจำสินทรัพย์ | สีตามผลตอบแทน (เขียว/แดง) + ธง (ข้อ 11) |
+| 14 | Performance | 5 กราฟแคบเรียงกัน | กราฟเดียว เลือกช่วงเวลา สลับ Bar / Heatmap (ข้อ 12) |
 
 ---
 
