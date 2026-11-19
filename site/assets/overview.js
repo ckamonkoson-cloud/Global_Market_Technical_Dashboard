@@ -51,7 +51,7 @@ renderClocks();
 function stackBar(parts) {
   const total = parts.reduce((s, p) => s + p.n, 0) || 1;
   return `<div class="stack">${parts.filter(p => p.n).map(p =>
-    `<span style="width:${(p.n / total) * 100}%;background:${p.c}" title="${p.label}: ${p.n}"></span>`).join("")}</div>` +
+    `<span style="width:${(p.n / total) * 100}%;background:${p.c}"></span>`).join("")}</div>` +
     `<div class="stack-key">${parts.map(p => `<span><i style="background:${p.c}"></i>${p.label} <b>${p.n}</b></span>`).join("")}</div>`;
 }
 
@@ -62,22 +62,46 @@ function renderPulse(S) {
   const chg = eq.map(a => a.chg1d).filter(v => v != null);
   const avg = chg.length ? chg.reduce((s, v) => s + v, 0) / chg.length : null;
   const count = (arr, key, val) => arr.filter(a => a[key] === val).length;
+  const pick = (arr, key, val) => arr.filter(a => a[key] === val);
+
+  // ---- hover summaries (one per tile)
+  const pct = a => `${esc(a.name)} <span class="${cls(a.chg1d)}">${fmtPct(a.chg1d, 2)}</span>`;
+  const group = (title, c, list, fmt = a => esc(a.name)) =>
+    `<div class="tt-g"><div class="tt-h"><i style="background:${c}"></i>${title} (${list.length})</div>` +
+    `<div class="tt-l">${list.length ? list.map(a => `<span class="tt-i">${fmt(a)}</span>`).join(" · ") : "–"}</div></div>`;
+  const byChg = [...eq].filter(a => a.chg1d != null).sort((a, b) => b.chg1d - a.chg1d);
+  const intra = eq.filter(a => a.intraday).length;
+  const intraNote = intra ? `<div class="tt-n">${intra} จาก ${eq.length} ดัชนียังเป็นข้อมูลระหว่างวัน (ตลาดยังไม่ปิด)</div>` : "";
+  const median = byChg.length ? byChg[Math.floor((byChg.length - 1) / 2)].chg1d : null;
+  const trendTip = t => pick(S.assets, "trend", t);
 
   const tiles = [
     {
       k: "ตลาดหุ้นวันนี้", v: `<span class="pos">${up} ▲</span> <span class="sep">/</span> <span class="neg">${down} ▼</span>`,
       d: stackBar([{ label: "ขึ้น", n: up, c: "var(--up-fill)" }, { label: "ไม่เปลี่ยน", n: flat, c: "var(--neutral)" }, { label: "ลง", n: down, c: "var(--down-fill)" }]),
+      tip: `<b>ดัชนีหุ้น ${eq.length} ตัว เทียบราคาปิดวันก่อนหน้า</b>` +
+        group("ขึ้น", "var(--up-fill)", byChg.filter(a => a.chg1d > 0), pct) +
+        (flat ? group("ไม่เปลี่ยน", "var(--neutral)", eq.filter(a => !(a.chg1d > 0) && !(a.chg1d < 0))) : "") +
+        group("ลง", "var(--down-fill)", byChg.filter(a => a.chg1d < 0), pct) + intraNote,
     },
     {
       k: `เฉลี่ย ${eq.length} ดัชนี (1 วัน)`, v: `<span class="${cls(avg)}">${fmtPct(avg, 2)}</span>`,
       d: `<div class="muted">ถ่วงน้ำหนักเท่ากันทุกดัชนี · สกุลเงินท้องถิ่น</div>`,
+      tip: `<b>ค่าเฉลี่ยการเปลี่ยนแปลง 1 วัน</b>` + (byChg.length ?
+        `<div class="tt-g">ดีที่สุด: ${pct(byChg[0])}<br>แย่ที่สุด: ${pct(byChg[byChg.length - 1])}<br>` +
+        `มัธยฐาน: <span class="${cls(median)}">${fmtPct(median, 2)}</span></div>` : "") +
+        `<div class="tt-n">ทุกดัชนีมีน้ำหนักเท่ากัน คิดในสกุลเงินท้องถิ่น (ไม่แปลงค่าเงิน)</div>` + intraNote,
     },
     {
-      k: `แนวโน้ม (${S.assets.length} สินทรัพย์)`, v: `${count(S.assets, "trend", "UPTREND")} <small>UPTREND</small>`,
+      k: `แนวโน้ม (${S.assets.length} สินทรัพย์)`, v: `${count(S.assets, "trend", "UPTREND")} <small>Uptrend</small>`,
       d: stackBar([
-        { label: "UP", n: count(S.assets, "trend", "UPTREND"), c: "var(--up-fill)" },
-        { label: "SIDE", n: count(S.assets, "trend", "SIDEWAYS"), c: "var(--neutral)" },
-        { label: "DOWN", n: count(S.assets, "trend", "DOWNTREND"), c: "var(--down-fill)" }]),
+        { label: "Up", n: count(S.assets, "trend", "UPTREND"), c: "var(--up-fill)" },
+        { label: "Side", n: count(S.assets, "trend", "SIDEWAYS"), c: "var(--neutral)" },
+        { label: "Down", n: count(S.assets, "trend", "DOWNTREND"), c: "var(--down-fill)" }]),
+      tip: `<b>แนวโน้มจากเส้น EMA (ทุกสินทรัพย์)</b>` +
+        group("Uptrend · ราคา > EMA50 > EMA200", "var(--up-fill)", trendTip("UPTREND")) +
+        group("Sideways · กรณีอื่น", "var(--neutral)", trendTip("SIDEWAYS")) +
+        group("Downtrend · ราคา < EMA50 < EMA200", "var(--down-fill)", trendTip("DOWNTREND")),
     },
     {
       k: `RRG (${eq.length} ดัชนี)`, v: `${count(eq, "quadrant", "Leading")} <small>Leading</small>`,
@@ -86,10 +110,24 @@ function renderPulse(S) {
         { label: "Weak", n: count(eq, "quadrant", "Weakening"), c: "var(--warn)" },
         { label: "Lag", n: count(eq, "quadrant", "Lagging"), c: "var(--down-fill)" },
         { label: "Impr", n: count(eq, "quadrant", "Improving"), c: "var(--accent)" }]),
+      tip: `<b>RRG: ดัชนีหุ้นเทียบตลาดโลก (ACWI)</b>` +
+        group("Leading · แข็งกว่าตลาด และยังแข็งขึ้น", "var(--up-fill)", pick(eq, "quadrant", "Leading")) +
+        group("Weakening · แข็งกว่าตลาด แต่เริ่มแผ่ว", "var(--warn)", pick(eq, "quadrant", "Weakening")) +
+        group("Lagging · อ่อนกว่าตลาด และยังอ่อนลง", "var(--down-fill)", pick(eq, "quadrant", "Lagging")) +
+        group("Improving · อ่อนกว่าตลาด แต่เริ่มฟื้น", "var(--accent)", pick(eq, "quadrant", "Improving")),
     },
   ];
-  document.getElementById("pulse").innerHTML = tiles.map(t =>
-    `<div class="tile"><div class="k">${t.k}</div><div class="v">${t.v}</div><div class="d">${t.d}</div></div>`).join("");
+  const host = document.getElementById("pulse");
+  host.innerHTML = tiles.map((t, i) =>
+    `<div class="tile" data-i="${i}"><div class="k">${t.k}</div><div class="v">${t.v}</div><div class="d">${t.d}</div></div>`).join("");
+  host.addEventListener("mousemove", ev => {
+    const el = ev.target.closest(".tile");
+    if (!el) return Tip.hide();
+    Tip.show(tiles[el.dataset.i].tip, ev);
+    Tip.el.classList.add("wide");
+    Tip.move(ev);   // re-place now that the wider box is measured
+  });
+  host.addEventListener("mouseleave", () => { Tip.hide(); if (Tip.el) Tip.el.classList.remove("wide"); });
 }
 
 // ------------------------------------------------------------ Top movers
