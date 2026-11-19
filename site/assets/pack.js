@@ -20,8 +20,17 @@
   const frame = () => new Promise(r => setTimeout(r, 30));
   const eager = html => html.replace(/ loading="lazy"/g, "");   // lazy images may never load in print
 
+  // The pack opens in its own tab, so "back" closes it and returns to the dashboard tab that is
+  // still open (navigating would leave two dashboard tabs). Opened directly → go to the dashboard.
+  $("pack-back").addEventListener("click", ev => {
+    if (history.length > 1) return;              // there is a page to go back to: follow the link
+    ev.preventDefault();
+    window.close();
+    setTimeout(() => { location.href = "index.html"; }, 300);   // close refused by the browser
+  });
+
   let S;
-  try { S = await getJSON("data/summary.json"); }
+  try { [S] = await Promise.all([getJSON("data/summary.json"), fontsReady]); }
   catch (e) { status.textContent = "โหลดข้อมูลไม่สำเร็จ: " + e.message; return; }
 
   const ordered = [];

@@ -94,6 +94,13 @@ async function getJSON(url) {
   return r.json();
 }
 
+// Canvas charts measure text when they are created, so the installed corporate font ("CI Sans",
+// see style.css) must be loaded first. Machines without it resolve at once and fall back to Sarabun.
+const fontsReady = (document.fonts && document.fonts.load)
+  ? Promise.all(["400", "600", "700"].map(w => document.fonts.load(`${w} 12px "CI Sans"`, "Aก")))
+      .then(() => document.fonts.ready).catch(() => {})
+  : Promise.resolve();
+
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }

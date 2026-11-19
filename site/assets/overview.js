@@ -66,7 +66,7 @@ function renderPulse(S) {
   const tiles = [
     {
       k: "ตลาดหุ้นวันนี้", v: `<span class="pos">${up} ▲</span> <span class="sep">/</span> <span class="neg">${down} ▼</span>`,
-      d: stackBar([{ label: "ขึ้น", n: up, c: "var(--up)" }, { label: "ไม่เปลี่ยน", n: flat, c: "var(--neutral)" }, { label: "ลง", n: down, c: "var(--down)" }]),
+      d: stackBar([{ label: "ขึ้น", n: up, c: "var(--up-fill)" }, { label: "ไม่เปลี่ยน", n: flat, c: "var(--neutral)" }, { label: "ลง", n: down, c: "var(--down-fill)" }]),
     },
     {
       k: `เฉลี่ย ${eq.length} ดัชนี (1 วัน)`, v: `<span class="${cls(avg)}">${fmtPct(avg, 2)}</span>`,
@@ -75,16 +75,16 @@ function renderPulse(S) {
     {
       k: `แนวโน้ม (${S.assets.length} สินทรัพย์)`, v: `${count(S.assets, "trend", "UPTREND")} <small>UPTREND</small>`,
       d: stackBar([
-        { label: "UP", n: count(S.assets, "trend", "UPTREND"), c: "var(--up)" },
+        { label: "UP", n: count(S.assets, "trend", "UPTREND"), c: "var(--up-fill)" },
         { label: "SIDE", n: count(S.assets, "trend", "SIDEWAYS"), c: "var(--neutral)" },
-        { label: "DOWN", n: count(S.assets, "trend", "DOWNTREND"), c: "var(--down)" }]),
+        { label: "DOWN", n: count(S.assets, "trend", "DOWNTREND"), c: "var(--down-fill)" }]),
     },
     {
       k: `RRG (${eq.length} ดัชนี)`, v: `${count(eq, "quadrant", "Leading")} <small>Leading</small>`,
       d: stackBar([
-        { label: "Lead", n: count(eq, "quadrant", "Leading"), c: "var(--up)" },
+        { label: "Lead", n: count(eq, "quadrant", "Leading"), c: "var(--up-fill)" },
         { label: "Weak", n: count(eq, "quadrant", "Weakening"), c: "var(--warn)" },
-        { label: "Lag", n: count(eq, "quadrant", "Lagging"), c: "var(--down)" },
+        { label: "Lag", n: count(eq, "quadrant", "Lagging"), c: "var(--down-fill)" },
         { label: "Impr", n: count(eq, "quadrant", "Improving"), c: "var(--accent)" }]),
     },
   ];
@@ -180,11 +180,11 @@ function syncNav() {
 
 // ------------------------------------------------------------ Risk-On / Risk-Off gauge
 const RISK_BANDS = [
-  { lo: 0, hi: 30, c: "var(--down)", label: "Risk-Off" },
-  { lo: 30, hi: 45, c: "color-mix(in srgb, var(--down) 45%, var(--neutral))", label: "เอียง Risk-Off" },
+  { lo: 0, hi: 30, c: "var(--down-fill)", label: "Risk-Off" },
+  { lo: 30, hi: 45, c: "color-mix(in srgb, var(--down-fill) 45%, var(--neutral))", label: "เอียง Risk-Off" },
   { lo: 45, hi: 55, c: "var(--neutral)", label: "Neutral" },
-  { lo: 55, hi: 70, c: "color-mix(in srgb, var(--up) 45%, var(--neutral))", label: "เอียง Risk-On" },
-  { lo: 70, hi: 100, c: "var(--up)", label: "Risk-On" },
+  { lo: 55, hi: 70, c: "color-mix(in srgb, var(--up-fill) 45%, var(--neutral))", label: "เอียง Risk-On" },
+  { lo: 70, hi: 100, c: "var(--up-fill)", label: "Risk-On" },
 ];
 const riskBand = s => RISK_BANDS.find(b => s < b.hi) || RISK_BANDS[RISK_BANDS.length - 1];
 

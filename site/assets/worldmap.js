@@ -90,7 +90,7 @@ async function renderWorldMap(S) {
     return `<svg width="${f1(2 * r + 4)}" height="${f1(2 * r + 4)}"><circle cx="${f1(r + 2)}" cy="${f1(r + 2)}" r="${f1(r)}" fill="none" stroke="var(--text-3)"/></svg> ${fmtPct(v, 1, false)}`;
   }).join(" &nbsp;");
   document.getElementById("map-legend").innerHTML =
-    `<span><i class="sw" style="background:var(--up)"></i>ขึ้น</span><span><i class="sw" style="background:var(--down)"></i>ลง</span>` +
+    `<span><i class="sw" style="background:var(--up-fill)"></i>ขึ้น</span><span><i class="sw" style="background:var(--down-fill)"></i>ลง</span>` +
     `<span>ขนาด: ${keySvg}</span><span class="muted">ตลาดสหรัฐฯ อาจเป็นข้อมูลของวันทำการก่อนหน้าเพราะต่างเวลา</span>`;
 }
 

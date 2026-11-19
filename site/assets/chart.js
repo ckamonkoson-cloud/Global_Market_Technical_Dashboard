@@ -19,6 +19,7 @@
     `ที่มา: TradingView (ผ่าน tvdatafeed) ณ วันที่ ${thDate(b.t[LAST])} · ข้อมูลเพื่อการวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน`;
 
   const el = document.getElementById("tvchart");
+  await fontsReady;
   const tc = TechChart.create(el, A);
   const chart = tc.chart;
 
